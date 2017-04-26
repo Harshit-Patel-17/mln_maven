@@ -1,1 +1,5 @@
-Hello
+#domains
+dom1 = {Harshit, Ajita, Swarnadeep, Varuni}
+dom2 = {1,...,3}
+dom3 = {-1,...,1}
+1.3e4
