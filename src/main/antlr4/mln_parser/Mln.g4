@@ -1,7 +1,7 @@
 grammar Mln;
 
 mln
-	: domainblock SCIENTIFIC EOF
+	: domainblock EOF
 	;
 	
 domainblock
@@ -15,7 +15,7 @@ domainbody
 	;
 	
 domain
-	: IDENTIFIER EQ set
+	: domainName=IDENTIFIER EQ set
 	;
 	
 set
@@ -24,39 +24,31 @@ set
 	
 list
 	: symblist
-	| intlist
 	| intrange
 	;
 	
 symblist
-	: SYMBOL 
-	| SYMBOL COMMA symblist
-	;
-	
-intlist
-	: INTEGER
-	| INTEGER COMMA intlist
+	: val=SYMBOL 
+	| val=INTEGER
+	| val=SYMBOL COMMA symblist
+	| val=INTEGER COMMA symblist
 	;
 
 intrange
-	: INTEGER COMMA ELLIPSIS COMMA INTEGER
+	: valStart=INTEGER COMMA ELLIPSIS COMMA valEnd=INTEGER
 	;
 
 COMMENT
-	: COMMENTSYM .* NEWLINE
-	| COMMENTSYM .* EOF
+	: COMMENTSYM (.)*? NEWLINE
+	| COMMENTSYM (.)*? EOF
 	;
 
 INTEGER
 	: MINUS? DIGIT+
 	;
 
-SCIENTIFIC
-	: DECIMAL (('e'|'E') DECIMAL)?
-	;
-
-DECIMAL
-	: MINUS? DIGIT+ (POINT DIGIT+)?
+REAL
+	: MINUS? DIGIT+ (POINT DIGIT+)? (('e'|'E') MINUS? DIGIT+ (POINT DIGIT+)?)?
 	;
 
 SYMBOL
@@ -85,14 +77,6 @@ RCURLY
 	
 EQ
 	: '='
-	;
-
-AND
-	: '^'
-	;
-	
-OR
-	: 'v'
 	;
 	
 COL
