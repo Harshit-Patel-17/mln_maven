@@ -21,6 +21,14 @@ public class Symbols {
     idToSymbol.put(id, symbol);
   }
   
+  public boolean exist(String symbol) {
+    return symbolToId.containsKey(symbol);
+  }
+  
+  public boolean exist(int id) {
+    return idToSymbol.containsKey(id);
+  }
+  
   public int size() {
     return symbolToId.size();
   }

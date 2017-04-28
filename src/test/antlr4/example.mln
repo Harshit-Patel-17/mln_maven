@@ -1,4 +1,8 @@
 #domains
-dom1 = {Harshit, Ajita, Swarnadeep, Varuni}
-dom2 = {1,...,3}
-dom3 = {-1,...,1}
+Dom1 = {Harshit, Ajita, Swarnadeep, Varuni}
+Dom2 = {1,...,3}
+Dom3 = {-1,...,1}
+
+#predicates
+P(Dom1, Dom2) = {1,...,3}
+Q(Dom1) = {A, B, C, D}

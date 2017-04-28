@@ -22,6 +22,10 @@ public class Domain {
     }
   }
   
+  public Symbols getVals() {
+    return vals;
+  }
+  
   public int getDomainId() {
     return domainId;
   }

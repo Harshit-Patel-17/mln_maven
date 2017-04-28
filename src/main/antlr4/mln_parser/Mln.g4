@@ -1,7 +1,7 @@
 grammar Mln;
 
 mln
-	: domainblock EOF
+	: domainblock predicateDefBlock EOF
 	;
 	
 domainblock
@@ -15,23 +15,31 @@ domainbody
 	;
 	
 domain
-	: domainName=IDENTIFIER EQ set
+	: domainName1=SYMBOL EQ LCURLY vals1=symblist RCURLY
+	| domainName2=SYMBOL EQ LCURLY vals2=intrange RCURLY
 	;
 	
-set
-	: LCURLY list RCURLY
+predicateDefBlock
+	: '#predicates' predicateDefBody
 	;
 	
-list
-	: symblist
-	| intrange
+predicateDefBody
+	:
+	| predicateDef predicateDefBody
+	| COMMENT predicateDefBody
+	;
+	
+predicateDef
+	: predicateName1=SYMBOL LPAREN doms1=symblist RPAREN EQ LCURLY vals1=symblist RCURLY
+	| predicateName2=SYMBOL LPAREN doms2=symblist RPAREN EQ LCURLY vals2=intrange RCURLY
+	| predicateName3=SYMBOL LPAREN doms3=symblist RPAREN EQ vals3=SYMBOL
 	;
 	
 symblist
-	: val=SYMBOL 
-	| val=INTEGER
-	| val=SYMBOL COMMA symblist
-	| val=INTEGER COMMA symblist
+	: SYMBOL 
+	| INTEGER
+	| SYMBOL COMMA symblist
+	| INTEGER COMMA symblist
 	;
 
 intrange
