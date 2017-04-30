@@ -2,10 +2,9 @@ package iitd.data_analytics.mln;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-
-import org.antlr.v4.runtime.ANTLRInputStream;
 
 /**
  * Hello world!
@@ -13,7 +12,7 @@ import org.antlr.v4.runtime.ANTLRInputStream;
  */
 public class App 
 {
-    public static void main( String[] args ) throws IOException
+    public static void main( String[] args ) throws MlnParseException, IOException
     {
         String inputFile = "src/test/antlr4/example.mln";
         System.out.println( "Parsing Mln File..." );

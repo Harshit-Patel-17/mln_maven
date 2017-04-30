@@ -42,6 +42,14 @@ public class Domain {
     return vals.getSymbolFromId(id);
   }
   
+  public boolean exist(int id) {
+    return vals.exist(id);
+  }
+  
+  public boolean exist(String symbol) {
+    return vals.exist(symbol);
+  }
+  
   //Display on stdout
   public void display() {
     System.out.print("id:" + domainId);

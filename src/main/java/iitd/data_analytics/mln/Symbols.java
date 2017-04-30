@@ -33,6 +33,11 @@ public class Symbols {
     return symbolToId.size();
   }
   
+  public void clear() {
+    symbolToId.clear();
+    idToSymbol.clear();
+  }
+  
   public void displayAll() {
     System.out.println(idToSymbol);
   }

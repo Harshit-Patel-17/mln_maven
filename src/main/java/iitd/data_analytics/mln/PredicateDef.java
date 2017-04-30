@@ -17,6 +17,23 @@ public class PredicateDef {
     vals = _vals;
   }
   
+  //Getters and Setters
+  public int getPredicateId() {
+    return predicateId;
+  }
+  
+  public String getPredicateName() {
+    return predicateName;
+  }
+  
+  public ArrayList<Domain> getDomains() {
+    return domains;
+  }
+  
+  public Symbols getVals() {
+    return vals;
+  }
+  
   //Display on stdout
   public void displayDomainNames() {
     System.out.print("(");

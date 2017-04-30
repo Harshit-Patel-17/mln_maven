@@ -18,6 +18,9 @@ public class Mln {
   private ArrayList<PredicateDef> predicateDefs;
   //Definitions of predicates
   
+  public ArrayList<FirstOrderFormula<Predicate>> foFormulas = 
+      new ArrayList<FirstOrderFormula<Predicate>>();
+  
   public Mln() {
     domainSymbols = new Symbols();
     domains = new ArrayList<Domain>();
@@ -34,6 +37,12 @@ public class Mln {
     return domains;
   }
   
+  public Domain getDomainByName(String domainName) {
+    if(!domainSymbols.exist(domainName))
+      return null;
+    return domains.get(domainSymbols.getIdFromSymbol(domainName));
+  }
+  
   public void addDomain(String domainName, ArrayList<String> vals) {
     //Size of domains is the id for next domain symbol
     int id = domains.size();
@@ -47,6 +56,12 @@ public class Mln {
   
   public ArrayList<PredicateDef> getPredicateDefs() {
     return predicateDefs;
+  }
+  
+  public PredicateDef getPredicateDefByName(String predicateName) {
+    if(!predicateSymbols.exist(predicateName))
+      return null;
+    return predicateDefs.get(predicateSymbols.getIdFromSymbol(predicateName));
   }
   
   public void addPredicate(String predicateName, ArrayList<String> domainNames, 
