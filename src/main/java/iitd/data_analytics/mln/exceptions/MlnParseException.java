@@ -1,4 +1,4 @@
-package iitd.data_analytics.mln;
+package iitd.data_analytics.mln.exceptions;
 
 public class MlnParseException extends Exception {
   

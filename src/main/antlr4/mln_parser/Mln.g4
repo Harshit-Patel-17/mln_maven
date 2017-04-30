@@ -2,7 +2,8 @@ grammar Mln;
 
 @header {
 import iitd.data_analytics.mln.*;
-import iitd.data_analytics.mln.Predicate;
+import iitd.data_analytics.mln.mln.Predicate;
+import iitd.data_analytics.mln.logic.*;
 }
 
 mln

@@ -1,4 +1,4 @@
-package iitd.data_analytics.mln;
+package iitd.data_analytics.mln.factory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +13,13 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+import iitd.data_analytics.mln.exceptions.MlnParseException;
+import iitd.data_analytics.mln.logic.FirstOrderFormula;
+import iitd.data_analytics.mln.mln.Domain;
+import iitd.data_analytics.mln.mln.Mln;
+import iitd.data_analytics.mln.mln.Predicate;
+import iitd.data_analytics.mln.mln.PredicateDef;
+import iitd.data_analytics.mln.mln.Symbols;
 import mln_parser.*;
 import mln_parser.MlnParser.Domain1Context;
 import mln_parser.MlnParser.Domain2Context;

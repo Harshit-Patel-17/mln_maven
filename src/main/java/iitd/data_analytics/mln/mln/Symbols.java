@@ -1,4 +1,4 @@
-package iitd.data_analytics.mln;
+package iitd.data_analytics.mln.mln;
 
 import java.util.HashMap;
 import java.util.Map;

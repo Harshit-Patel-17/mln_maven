@@ -1,6 +1,8 @@
-package iitd.data_analytics.mln;
+package iitd.data_analytics.mln.mln;
 
 import java.util.ArrayList;
+
+import iitd.data_analytics.mln.logic.FirstOrderFormula;
 
 public class Mln {
 
