@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -91,12 +93,9 @@ public class MlnFactory {
     mln.displayPredicateDefs();
     
     System.out.println("\nFormulas");
-    for(FirstOrderFormula<Predicate> foFormula : mln.foFormulas) {
-      foFormula.display();
-      foFormula.nnf().display();
-      foFormula.cnf().display();
-      System.out.println("");
-    }
+    mln.displayFormulas();
+    mln.displayFormulasEncoded();
+
     return mln;
   }
 }
@@ -106,13 +105,15 @@ class MyMlnBaseListener extends MlnBaseListener {
   
   private MlnParser p;
   private Mln mln;
-  Symbols vars;
+  Map<String,Domain> varsDomain;
+  Symbols varsId;
   
   public MyMlnBaseListener(MlnParser _p, Mln _mln) {
     super();
     p = _p;
     mln = _mln;
-    vars = new Symbols();
+    varsDomain = new HashMap<String,Domain>();
+    varsId = new Symbols();
   }
   
   @Override
@@ -148,6 +149,7 @@ class MyMlnBaseListener extends MlnBaseListener {
   @Override
   public void exitPredicateDef3(PredicateDef3Context ctx) {
     super.exitPredicateDef3(ctx);
+    //TODO: Handle this case
     checkForRedeclaration(ctx.predicateName3.getText());
     mln.addPredicate(ctx.predicateName3.getText(), parseList(ctx.doms3.getText()),
         ctx.vals3.getText());
@@ -156,8 +158,9 @@ class MyMlnBaseListener extends MlnBaseListener {
   @Override
   public void exitFormulaBody2(FormulaBody2Context ctx) {
     super.exitFormulaBody2(ctx);
-    mln.foFormulas.add(ctx.formula().foFormula);
-    vars.clear();
+    mln.addFormula(ctx.formula().foFormula, varsDomain, varsId);
+    varsDomain = new HashMap<String,Domain>();
+    varsId = new Symbols();
   }
   
   @Override
@@ -251,18 +254,22 @@ class MyMlnBaseListener extends MlnBaseListener {
   private Predicate validateAndCreatePredicate(String predicateName,
       ArrayList<String> terms, String val) {
     PredicateDef predicateDef = mln.getPredicateDefByName(predicateName);
-    unifyTermsWithDomains(predicateName, predicateDef.getDomains(), terms);
+    ArrayList<Boolean> isVariable = new ArrayList<Boolean>();
+    for(String term : terms) {
+      isVariable.add(Character.isLowerCase(term.charAt(0)));
+    }
+    unifyTermsWithDomains(predicateName, predicateDef.getDomains(), terms, isVariable);
     if(!predicateDef.getVals().exist(val)) {
       String msg = "Value of predicate " + predicateName + " doesn't match with any valid "
           + "values in definition.";
       p.notifyErrorListeners(msg);
     }
-    Predicate p = new Predicate(predicateDef, terms, val);
+    Predicate p = new Predicate(predicateDef, terms, isVariable, val, varsId);
     return p;
   }
   
   private void unifyTermsWithDomains(String predicateName, ArrayList<Domain> domains,
-      ArrayList<String> terms) {
+      ArrayList<String> terms, ArrayList<Boolean> isVariable) {
     if(domains.size() != terms.size()) {
       String msg = "Number of terms of predicate " + predicateName + " doesn't "
           + "matches with its definition.";
@@ -272,17 +279,18 @@ class MyMlnBaseListener extends MlnBaseListener {
     for(int i = 0; i < domains.size(); i++) {
       Domain domain = domains.get(i);
       String term = terms.get(i);
-      if(Character.isLowerCase(term.charAt(0))) {
-        //If term is variable then check for consistency of domain
+      if(isVariable.get(i)) {
+        //If term is variable then check for consistency of var-domain mapping
         //If variable appears for the first time then create new var-dom mapping
-        if(vars.exist(term)) {
-          if(domain.getDomainId() != vars.getIdFromSymbol(term)) {
+        if(varsDomain.containsKey(term)) {
+          if(domain.getDomainId() != varsDomain.get(term).getDomainId()) {
             String msg = "Variable " + term + " doesn't have consistent "
                 + "domain in the formula.";
             p.notifyErrorListeners(msg);
           }          
         } else {
-          vars.addMapping(domain.getDomainId(), term);
+          varsDomain.put(term, domain);
+          varsId.addMapping(varsId.size(), term);
         }
       } else {
         if(!domain.exist(term)) {

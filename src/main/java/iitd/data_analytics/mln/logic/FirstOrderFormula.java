@@ -1,5 +1,7 @@
 package iitd.data_analytics.mln.logic;
 
+import java.util.ArrayList;
+
 public class FirstOrderFormula<T> {
   
   //Structures to construct formula tree
@@ -177,6 +179,109 @@ public class FirstOrderFormula<T> {
     if(subtreeRoot.nodeType == NodeType.AND)
       return true;
     return isAndNodeInSubtree(subtreeRoot.lchild) || isAndNodeInSubtree(subtreeRoot.rchild);
+  }
+  
+  public ArrayList<ArrayList<Literal<T>>> asSetOfClauses() {
+    Node cnfRoot = cnfRec(nnfRec(root));
+    return asSetOfClausesRec(cnfRoot);
+  }
+  
+  private ArrayList<ArrayList<Literal<T>>> asSetOfClausesRec(Node _root) {
+    ArrayList<ArrayList<Literal<T>>> setOfClauses = new ArrayList<ArrayList<Literal<T>>>();
+    ArrayList<Literal<T>> clause;
+    
+    if(_root == null)
+      return setOfClauses;
+    
+    switch(_root.nodeType) {
+    case ATOM:
+      clause = new ArrayList<Literal<T>>();
+      clause.add(new Literal<T>(false, _root.atom)); //Add non-negated literal
+      setOfClauses.add(clause);
+      break;
+      
+    case AND:
+      ArrayList<ArrayList<Literal<T>>> setOfClauses1 = asSetOfClausesRec(_root.lchild);
+      ArrayList<ArrayList<Literal<T>>> setOfClauses2 = asSetOfClausesRec(_root.rchild);
+      setOfClauses.addAll(setOfClauses1);
+      setOfClauses.addAll(setOfClauses2);
+      break;
+      
+    case OR:
+      ArrayList<Literal<T>> literals = getLiterals(_root);
+      setOfClauses.add(literals);
+      break;
+      
+    case IMPLY:
+      assert false : "IMPLY cannot be in cnf";
+      break;
+      
+    case EQUIV:
+      assert false : "EQUIV cannot be in cnf";
+      break;
+      
+    case XOR:
+      assert false : "XOR cannot be in cnf";
+      break;
+      
+    case NOT:
+      clause = new ArrayList<Literal<T>>();
+      clause.add(new Literal<T>(true, _root.rchild.atom)); //Add negated literal
+      setOfClauses.add(clause);
+      break;
+      
+    default:
+      return null;
+    }
+    
+    return setOfClauses;
+  }
+  
+  private ArrayList<Literal<T>> getLiterals(Node _root) {
+    ArrayList<Literal<T>> literals = new ArrayList<Literal<T>>();
+    
+    if(_root == null)
+      return literals;
+    
+    switch(_root.nodeType) {
+    case ATOM:
+      literals.add(new Literal<T>(false, _root.atom)); //Add non-negated atom
+      break;
+      
+    case AND:
+      literals.addAll(getLiterals(_root.lchild));
+      literals.addAll(getLiterals(_root.rchild));
+      break;
+      
+    case OR:
+      literals.addAll(getLiterals(_root.lchild));
+      literals.addAll(getLiterals(_root.rchild));
+      break;
+      
+    case IMPLY:
+      literals.addAll(getLiterals(_root.lchild));
+      literals.addAll(getLiterals(_root.rchild));
+      break;
+      
+    case EQUIV:
+      literals.addAll(getLiterals(_root.lchild));
+      literals.addAll(getLiterals(_root.rchild));
+      break;
+      
+    case XOR:
+      literals.addAll(getLiterals(_root.lchild));
+      literals.addAll(getLiterals(_root.rchild));
+      break;
+      
+    case NOT:
+      literals.add(new Literal<T>(true, _root.rchild.atom)); //Add negated atom
+      break;
+      
+    default:
+      return null;
+    }
+    
+    return literals;
   }
   
   //Output on stdout

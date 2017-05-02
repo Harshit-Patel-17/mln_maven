@@ -38,7 +38,7 @@ public class Domain {
     return vals.getIdFromSymbol(symbol);
   }
   
-  public String getValNameFromId(int id) {
+  public String getValSymbolFromId(int id) {
     return vals.getSymbolFromId(id);
   }
   
@@ -48,6 +48,10 @@ public class Domain {
   
   public boolean exist(String symbol) {
     return vals.exist(symbol);
+  }
+  
+  public int size() {
+    return vals.size();
   }
   
   //Display on stdout

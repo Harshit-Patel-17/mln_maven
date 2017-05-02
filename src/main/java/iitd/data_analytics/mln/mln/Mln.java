@@ -1,7 +1,9 @@
 package iitd.data_analytics.mln.mln;
 
 import java.util.ArrayList;
+import java.util.Map;
 
+import iitd.data_analytics.mln.gpu.GpuFormula;
 import iitd.data_analytics.mln.logic.FirstOrderFormula;
 
 public class Mln {
@@ -20,6 +22,7 @@ public class Mln {
   private ArrayList<PredicateDef> predicateDefs;
   //Definitions of predicates
   
+  private ArrayList<Formula> formulas;
   public ArrayList<FirstOrderFormula<Predicate>> foFormulas = 
       new ArrayList<FirstOrderFormula<Predicate>>();
   
@@ -28,6 +31,7 @@ public class Mln {
     domains = new ArrayList<Domain>();
     predicateSymbols = new Symbols();
     predicateDefs = new ArrayList<PredicateDef>();
+    formulas = new ArrayList<Formula>();
   }
   
   //Getters and Setters
@@ -105,6 +109,17 @@ public class Mln {
         valsSymbols));
   }
   
+  public ArrayList<Formula> getFormulas() {
+    return formulas;
+  }
+  
+  public void addFormula(FirstOrderFormula<Predicate> foFormula, 
+      Map<String,Domain> varsDomain, Symbols varsId) {
+    //Size of formulas is the id for the next formula
+    int formulaId = formulas.size();
+    formulas.add(new GpuFormula(formulaId, foFormula, varsDomain, varsId));
+  }
+  
   //Display on stdout
   public void displayDomainSymbols() {
     domainSymbols.displayAll();
@@ -123,6 +138,18 @@ public class Mln {
   public void displayPredicateDefs() {
     for(PredicateDef predicateDef : predicateDefs) {
       predicateDef.display();
+    }
+  }
+  
+  public void displayFormulas() {
+    for(Formula formula : formulas) {
+      formula.display();
+    }
+  }
+  
+  public void displayFormulasEncoded() {
+    for(Formula formula : formulas) {
+      formula.displayEncoded();
     }
   }
 }
