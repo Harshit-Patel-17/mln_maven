@@ -1,14 +1,20 @@
 #domains
-Dom1 = {Harshit, Ajita, Swarnadeep, Varuni}
-Dom2 = {1,...,3}
-Dom3 = {-1,...,1}
+//Dom1 = {Harshit, Ajita, Swarnadeep, Varuni}
+//Dom2 = {1,...,3}
+//Dom3 = {-1,...,1}
+DomX = {0,1,2}
+DomY = {0,1}
+DomZ = {0,1}
 
 #predicates
-P(Dom1, Dom2) = {1,...,3}
-Q(Dom1) = {A, B, C, D}
+//P(Dom1, Dom2) = {1,...,3}
+//Q(Dom1) = {A, B, C, D}
+P(DomX, DomY) = {0,1}
+Q(DomX, DomZ) = {0,1}
+R(DomZ) = {0,1}
 
 #formulas
-P(Harshit, 1) = 1
-(P(Harshit, 2) = 3 => Q(Varuni) = B) v (P(Ajita, 1) = 2 <=> Q(Swarnadeep) = D)
-P(x, y) = 3 => Q(Varuni) = B v P(Ajita, y) = 2 <=> Q(Swarnadeep) = D
- 
+//P(Harshit, 1) = 1
+//(P(Harshit, 2) = 3 => Q(Varuni) = B) v (P(Ajita, 1) = 2 <=> Q(Swarnadeep) = D)
+//P(x, y) = 3 => Q(Varuni) = B v P(Ajita, y) = 2 <=> Q(Swarnadeep) = D
+ P(2,y) = 0 v !Q(x,z) = 1 v R(z) = 0

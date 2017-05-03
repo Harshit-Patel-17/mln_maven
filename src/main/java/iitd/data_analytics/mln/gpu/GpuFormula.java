@@ -1,5 +1,6 @@
 package iitd.data_analytics.mln.gpu;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import iitd.data_analytics.mln.logic.FirstOrderFormula;
@@ -8,10 +9,10 @@ import iitd.data_analytics.mln.mln.*;
 public class GpuFormula extends Formula {
 
   private int totalVars;
-  long totalGroundings;
+  private long totalGroundings;
   private int[] varDomainSizes;
-  //Set<GpuClause> clauses;
-  int maxThreads;
+  private ArrayList<GpuClause> clauses;
+  private int maxThreads;
   
   public GpuFormula(int _formulaId, FirstOrderFormula<Predicate> foFormula, 
       Map<String,Domain> _varsDomain, Symbols _varsId) {
@@ -26,12 +27,32 @@ public class GpuFormula extends Formula {
       varDomainSizes[i] = domainSize;
       totalGroundings *= domainSize;
     }
+    maxThreads = GpuConfig.maxThreads;
+    
+    clauses = new ArrayList<GpuClause>();
+    for(ArrayList<Predicate> clause : super.getClauses()) {
+      clauses.add(new GpuClause(clause, totalVars, totalGroundings));
+    }
   }
 
   @Override
   public long countSatisfiedGroundings() {
     System.out.println("Counting Satisfied Groundings");
     return 0;
+  }
+  
+  @Override
+  public String toString() {
+    String str = super.toString();
+    for(GpuClause clause : clauses) {
+      str += clause.toString();
+    }
+    return str;
+  }
+  
+  @Override
+  public void display() {
+    System.out.print(this);
   }
 
 }

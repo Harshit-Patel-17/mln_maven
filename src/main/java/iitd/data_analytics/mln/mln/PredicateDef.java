@@ -4,10 +4,10 @@ import java.util.ArrayList;
 
 public class PredicateDef {
 
-  int predicateId;
-  String predicateName;
-  ArrayList<Domain> domains;
-  Symbols vals;
+  private int predicateId;
+  private String predicateName;
+  private ArrayList<Domain> domains;
+  private Symbols vals;
   
   public PredicateDef(int _predicateId, String _predicateName,
       ArrayList<Domain> _domains, Symbols _vals) {

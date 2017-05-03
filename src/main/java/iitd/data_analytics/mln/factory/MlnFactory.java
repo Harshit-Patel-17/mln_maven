@@ -16,11 +16,13 @@ import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import iitd.data_analytics.mln.exceptions.MlnParseException;
+import iitd.data_analytics.mln.gpu.GpuState;
 import iitd.data_analytics.mln.logic.FirstOrderFormula;
 import iitd.data_analytics.mln.mln.Domain;
 import iitd.data_analytics.mln.mln.Mln;
 import iitd.data_analytics.mln.mln.Predicate;
 import iitd.data_analytics.mln.mln.PredicateDef;
+import iitd.data_analytics.mln.mln.State;
 import iitd.data_analytics.mln.mln.Symbols;
 import mln_parser.*;
 import mln_parser.MlnParser.Domain1Context;
@@ -85,6 +87,9 @@ public class MlnFactory {
     //Walk parse tree
     walker.walk(listener, mlnContext);
     
+    //MLN create. Build State
+    State state = new GpuState(mln.getPredicateDefs());
+    
     System.out.println("\nDomains");
     mln.displayDomainSymbols();
     mln.displayDomains();
@@ -93,9 +98,11 @@ public class MlnFactory {
     mln.displayPredicateDefs();
     
     System.out.println("\nFormulas");
+    mln.displayFormulasSymbolic();
     mln.displayFormulas();
-    mln.displayFormulasEncoded();
 
+    state.display();
+    
     return mln;
   }
 }

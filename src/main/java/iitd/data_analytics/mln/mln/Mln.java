@@ -23,8 +23,9 @@ public class Mln {
   //Definitions of predicates
   
   private ArrayList<Formula> formulas;
-  public ArrayList<FirstOrderFormula<Predicate>> foFormulas = 
-      new ArrayList<FirstOrderFormula<Predicate>>();
+  //Contains first order formulas.
+  
+  private State state;
   
   public Mln() {
     domainSymbols = new Symbols();
@@ -120,6 +121,14 @@ public class Mln {
     formulas.add(new GpuFormula(formulaId, foFormula, varsDomain, varsId));
   }
   
+  public void addState(State _state) {
+    state = _state;
+  }
+  
+  public State getState() {
+    return state;
+  }
+  
   //Display on stdout
   public void displayDomainSymbols() {
     domainSymbols.displayAll();
@@ -141,15 +150,15 @@ public class Mln {
     }
   }
   
-  public void displayFormulas() {
+  public void displayFormulasSymbolic() {
     for(Formula formula : formulas) {
-      formula.display();
+      formula.displaySymbolic();
     }
   }
   
-  public void displayFormulasEncoded() {
+  public void displayFormulas() {
     for(Formula formula : formulas) {
-      formula.displayEncoded();
+      System.out.print(formula);
     }
   }
 }

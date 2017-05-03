@@ -1,6 +1,7 @@
 package iitd.data_analytics.mln.mln;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 
 import iitd.data_analytics.mln.logic.FirstOrderFormula;
@@ -54,28 +55,31 @@ public abstract class Formula {
   public abstract long countSatisfiedGroundings();
   
   //Display on stdout
-  public void display() {
+  @Override
+  public String toString() {    
+    String str = "id:" + formulaId + " ";
+    for(ArrayList<Predicate> _clause : clauses) {
+      str += Arrays.deepToString(_clause.toArray());
+      str += " ";
+    }
+    str += "\n";
+    return str;
+  }
+  
+  public void displaySymbolic() {
     System.out.print("id:" + formulaId);
     for(ArrayList<Predicate> _clause : clauses) {
       System.out.print(" (");
       for(Predicate p : _clause) {
-        System.out.print(p + " ");
+        p.displaySymbolic();
+        System.out.print(" ");
       }
       System.out.print(")");
     }
     System.out.println("");
   }
   
-  public void displayEncoded() {
-    System.out.print("id:" + formulaId);
-    for(ArrayList<Predicate> _clause : clauses) {
-      System.out.print(" (");
-      for(Predicate p : _clause) {
-        p.displayEncoded();
-        System.out.print(" ");
-      }
-      System.out.print(")");
-    }
-    System.out.println("");
+  public void display() {
+    System.out.print(this);
   }
 }

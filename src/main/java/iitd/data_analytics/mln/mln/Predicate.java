@@ -1,6 +1,7 @@
 package iitd.data_analytics.mln.mln;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Predicate {
 
@@ -14,6 +15,8 @@ public class Predicate {
   
   public Predicate(PredicateDef _predicateDef, ArrayList<String> _symbolicTerms, 
       ArrayList<Boolean> _isVariable, String _symbolicValue, Symbols vars) {
+    assert symbolicTerms.size() == predicateDef.getDomains().size();
+    
     predicateDef = _predicateDef;
     symbolicTerms = _symbolicTerms;
     terms = new ArrayList<Integer>();
@@ -52,6 +55,10 @@ public class Predicate {
   }
   
   //Getters and Setters
+  public PredicateDef getPredicateDef() {
+    return predicateDef;
+  }
+  
   public void setIsNegated(boolean _isNegated) {
     isNegated = _isNegated;
   }
@@ -60,41 +67,39 @@ public class Predicate {
     return isNegated;
   }
   
+  public int getVal() {
+    return value;
+  }
+  
+  public ArrayList<Integer> getTerms() {
+    return terms;
+  }
+  
+  public ArrayList<Boolean> getIsVariable() {
+    return isVariable;
+  }
+  
   //display on stdout
   @Override
   public String toString() {
     String str = "";
     if(isNegated == true)
       str += "!";
-    str += predicateDef.getPredicateName() + "(";
-    for(String symbolicTerm : symbolicTerms) {
-      str += symbolicTerm + ",";
-    }
-    str += ")=" + symbolicValue;
+    str += predicateDef.getPredicateName();
+    str += Arrays.deepToString(terms.toArray());
+    str += "=" + symbolicValue;
     return str;
   }
   
-  public void display() {
+  public void displaySymbolic() {
     if(isNegated == true)
       System.out.print("!");
     System.out.print(predicateDef.getPredicateName());
-    System.out.print("(");
-    for(String symbolicTerm : symbolicTerms) {
-      System.out.print(symbolicTerm);
-      System.out.print(",");
-    }
-    System.out.print(")=" + symbolicValue);
+    System.out.print(Arrays.deepToString(symbolicTerms.toArray()));
+    System.out.print("=" + symbolicValue);
   }
   
-  public void displayEncoded() {
-    if(isNegated == true)
-      System.out.print("!");
-    System.out.print(predicateDef.getPredicateName());
-    System.out.print("(");
-    for(int term : terms) {
-      System.out.print(term);
-      System.out.print(",");
-    }
-    System.out.print(")=" + value);
+  public void display() {
+    System.out.print(this);
   }
 }
