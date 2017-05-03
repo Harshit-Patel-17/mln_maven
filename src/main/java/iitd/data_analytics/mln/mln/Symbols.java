@@ -38,7 +38,12 @@ public class Symbols {
     idToSymbol.clear();
   }
   
+  @Override
+  public String toString() {
+    return idToSymbol.toString();
+  }
+  
   public void displayAll() {
-    System.out.println(idToSymbol);
+    System.out.print(this);
   }
 }

@@ -44,7 +44,7 @@ public class PredicateGroundings {
     @Override
     public String toString() {
       String str = "";
-      str += "PredicateId:" + predicateDef.getPredicateId() + " ";
+      str += "State of " + predicateDef.getPredicateName() + " ";
       str += Arrays.toString(groundings);
       return str;
     }

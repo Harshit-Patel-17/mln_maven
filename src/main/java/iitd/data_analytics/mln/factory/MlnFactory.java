@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -27,8 +26,6 @@ import iitd.data_analytics.mln.mln.Symbols;
 import mln_parser.*;
 import mln_parser.MlnParser.Domain1Context;
 import mln_parser.MlnParser.Domain2Context;
-import mln_parser.MlnParser.DomainContext;
-import mln_parser.MlnParser.DomainblockContext;
 import mln_parser.MlnParser.Formula1Context;
 import mln_parser.MlnParser.Formula2Context;
 import mln_parser.MlnParser.Formula3Context;
@@ -36,18 +33,12 @@ import mln_parser.MlnParser.Formula4Context;
 import mln_parser.MlnParser.Formula5Context;
 import mln_parser.MlnParser.Formula6Context;
 import mln_parser.MlnParser.Formula7Context;
-import mln_parser.MlnParser.FormulaBody1Context;
 import mln_parser.MlnParser.FormulaBody2Context;
-import mln_parser.MlnParser.FormulaBodyContext;
-import mln_parser.MlnParser.FormulaContext;
-import mln_parser.MlnParser.IntrangeContext;
 import mln_parser.MlnParser.MlnContext;
 import mln_parser.MlnParser.PredicateContext;
 import mln_parser.MlnParser.PredicateDef1Context;
 import mln_parser.MlnParser.PredicateDef2Context;
 import mln_parser.MlnParser.PredicateDef3Context;
-import mln_parser.MlnParser.PredicateDefContext;
-import mln_parser.MlnParser.SymblistContext;
 
 public class MlnFactory {
   
@@ -91,17 +82,19 @@ public class MlnFactory {
     State state = new GpuState(mln.getPredicateDefs());
     
     System.out.println("\nDomains");
-    mln.displayDomainSymbols();
+    //mln.displayDomainSymbols();
     mln.displayDomains();
     
     System.out.println("\nPredicates");
     mln.displayPredicateDefs();
     
     System.out.println("\nFormulas");
-    mln.displayFormulasSymbolic();
+    //mln.displayFormulasSymbolic();
     mln.displayFormulas();
 
     state.display();
+    System.out.println(mln.getFormulas().get(0).countSatisfiedGroundings(state));
+    System.out.println(mln.getFormulas().get(1).countSatisfiedGroundings(state));
     
     return mln;
   }

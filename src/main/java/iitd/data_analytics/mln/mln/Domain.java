@@ -55,10 +55,16 @@ public class Domain {
   }
   
   //Display on stdout
+  @Override
+  public String toString() {
+    String str = "id:" + domainId;
+    str += " Name:" + domainName + " ";
+    str += vals.toString() + "\n";
+    return str;
+  }
+  
   public void display() {
-    System.out.print("id:" + domainId);
-    System.out.print(" Name:" + domainName + " ");
-    vals.displayAll();
+    System.out.print(this);
   }
   
 }

@@ -14,7 +14,12 @@ public abstract class State {
     }
   }
   
-  public abstract Object getGroundings();
+  public abstract Object getAllGroundings();
+  
+  public int[] getGroundings(int predicateId) {
+    assert (predicateId >= 0) && (predicateId < predicateGroundings.length);
+    return predicateGroundings[predicateId].getGroundings();
+  }
   
   @Override
   public String toString() {

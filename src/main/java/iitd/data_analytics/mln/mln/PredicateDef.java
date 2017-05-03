@@ -1,6 +1,7 @@
 package iitd.data_analytics.mln.mln;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class PredicateDef {
 
@@ -35,21 +36,25 @@ public class PredicateDef {
   }
   
   //Display on stdout
-  public void displayDomainNames() {
-    System.out.print("(");
-    for(Domain domain : domains) {
-      System.out.print(domain.getDomainName());
-      System.out.print(",");
+  public String getDomainNames() {
+    String[] domainNames = new String[domains.size()];
+    for(int i = 0; i < domains.size(); i++) {
+      domainNames[i] = domains.get(i).getDomainName();
     }
-    System.out.print(")");
+    return Arrays.toString(domainNames);
+  }
+  
+  @Override
+  public String toString() {
+    String str = "id:" + predicateId;
+    str += " Name:" + predicateName;
+    str += getDomainNames();
+    str += " vals:" + vals.toString() + "\n";
+    return str;
   }
   
   public void display() {
-    System.out.print("id:" + predicateId);
-    System.out.print(" Name:" + predicateName);
-    displayDomainNames();
-    System.out.print(" vals:");
-    vals.displayAll();
+    System.out.print(this);
   }
   
 }

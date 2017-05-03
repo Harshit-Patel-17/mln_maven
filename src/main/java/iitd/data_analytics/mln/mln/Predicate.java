@@ -15,7 +15,7 @@ public class Predicate {
   
   public Predicate(PredicateDef _predicateDef, ArrayList<String> _symbolicTerms, 
       ArrayList<Boolean> _isVariable, String _symbolicValue, Symbols vars) {
-    assert symbolicTerms.size() == predicateDef.getDomains().size();
+    assert _symbolicTerms.size() == _predicateDef.getDomains().size();
     
     predicateDef = _predicateDef;
     symbolicTerms = _symbolicTerms;
