@@ -17,7 +17,7 @@ import jcuda.driver.*;
  */
 public class App 
 {
-  public static void main( String[] args ) throws MlnParseException, IOException
+  public static void main( String[] args ) throws Exception
   {
     //Create GPU context
     cuInit(0);
@@ -26,13 +26,12 @@ public class App
     CUcontext context = new CUcontext();
     cuCtxCreate(context, 0, device);
     
-    String inputFile = "src/test/antlr4/example.mln";
-    System.out.println("Parsing Mln File...");
+    if(args.length == 0)
+      throw new Exception("Expecting input xml file name as an argument.");
+    InputParams inputParams = new InputParams(args[0]);
+    
     MlnFactory mlnFactory = new MlnFactory();
-    File f = new File(inputFile);
-    InputStream in = new FileInputStream(f);
-    mlnFactory.createMln(in);
-    System.out.println("Successfully Parsed Mln File.");
+    mlnFactory.createMln(inputParams);
     
     //Destroy GPU context
     cuCtxDestroy(context);

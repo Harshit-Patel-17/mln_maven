@@ -117,7 +117,7 @@ public class GpuFormula extends Formula {
     assert cuMemcpyDtoH(Pointer.to(satArray), d_satArray, totalGroundings * Sizeof.INT) == 
         CUresult.CUDA_SUCCESS;
 
-    System.out.println(Arrays.toString(satArray));
+    //System.out.println(Arrays.toString(satArray));
 
     int totalSatGroundings = gpuUtil.parallelSum(d_satArray, totalGroundings, maxThreads);
 
@@ -125,6 +125,35 @@ public class GpuFormula extends Formula {
     cuMemFree(d_interpretation);
 
     return totalSatGroundings;    
+  }
+  
+  @Override
+  public long countSatisfiedGroundingsCPU(State state) {
+    int[] satArray = new int[(int)totalGroundings];
+    for(int i = 0; i < totalGroundings; i++)
+      satArray[i] = 1;
+    
+    for(GpuClause clause : clauses) {
+      for(int i = 0; i < totalGroundings; i++) {
+        if(satArray[i] == 1) {
+          int sat = 0;
+          int baseIdx = i * clause.totalPreds;
+          for(int j = 0; j < clause.totalPreds; j++) {
+            int trueVal = clause.valTrue[j];
+            int stateVal = state.getGrounding(clause.predicates[j], clause.dbIndex[baseIdx + j]);
+            sat = Math.max(sat, (trueVal == stateVal)?1:0);
+          }
+          satArray[i] = sat;
+        }
+      }
+    }
+    
+    long count = 0;
+    for(int sat : satArray) {
+      count += sat;
+    }
+    
+    return count;
   }
   
   @Override

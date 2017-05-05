@@ -16,8 +16,8 @@ Q(Dom1) = {A, B, C, D}
 #formulas
 //P(Harshit, 1) = 1
 //(P(Harshit, 2) = 3 => Q(Varuni) = B) v (P(Ajita, 1) = 2 <=> Q(Swarnadeep) = D)
-Q(x) = C
-P(x, y) = 2
+//Q(x) = C
+//P(x, y) = 2
 P(x, y) = 3 => Q(Varuni) = B v P(Ajita, y) = 2 <=> Q(Swarnadeep) = D
 //P(x,y) = 1 v Q(x,z) = 1 v R(z) = 1
 //P(x,y) = 1 ^ Q(x,z) = 1 ^ R(z) = 1

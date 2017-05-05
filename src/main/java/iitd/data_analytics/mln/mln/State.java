@@ -16,6 +16,10 @@ public abstract class State {
   
   public abstract Object getAllGroundings();
   
+  public int getGrounding(int predicateId, int groundIdx) {
+    return predicateGroundings[predicateId].getGroundings()[groundIdx];
+  }
+  
   public int[] getGroundings(int predicateId) {
     assert (predicateId >= 0) && (predicateId < predicateGroundings.length);
     return predicateGroundings[predicateId].getGroundings();

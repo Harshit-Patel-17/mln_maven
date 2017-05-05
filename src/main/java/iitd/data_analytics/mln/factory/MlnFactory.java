@@ -1,11 +1,14 @@
 package iitd.data_analytics.mln.factory;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
@@ -18,6 +21,7 @@ import iitd.data_analytics.mln.exceptions.MlnParseException;
 import iitd.data_analytics.mln.gpu.GpuState;
 import iitd.data_analytics.mln.logic.FirstOrderFormula;
 import iitd.data_analytics.mln.mln.Domain;
+import iitd.data_analytics.mln.mln.InputParams;
 import iitd.data_analytics.mln.mln.Mln;
 import iitd.data_analytics.mln.mln.Predicate;
 import iitd.data_analytics.mln.mln.PredicateDef;
@@ -42,9 +46,15 @@ import mln_parser.MlnParser.PredicateDef3Context;
 
 public class MlnFactory {
   
-  public Mln createMln(InputStream in) throws MlnParseException, IOException {
+  public Mln createMln(InputParams inputParams) throws MlnParseException, IOException, InterruptedException {
     //New MLN object
     Mln mln = new Mln();
+    
+    //Create input stream
+    String inputFile = inputParams.getMlnFile();
+    boolean useGpu = inputParams.useGpu();
+    File f = new File(inputFile);
+    InputStream in = new FileInputStream(f);
     
     //Create MLN lexer object
     MlnLexer l = new MlnLexer(CharStreams.fromStream(in));
@@ -80,7 +90,7 @@ public class MlnFactory {
     //MLN create. Build State
     State state = new GpuState(mln.getPredicateDefs());
     
-    System.out.println("\nDomains");
+    /*System.out.println("\nDomains");
     //mln.displayDomainSymbols();
     mln.displayDomains();
     
@@ -89,12 +99,23 @@ public class MlnFactory {
     
     System.out.println("\nFormulas");
     //mln.displayFormulasSymbolic();
-    mln.displayFormulas();
+    mln.displayFormulas();*/
 
-    state.display();
+    long startTime = System.nanoTime();
+    if(useGpu) {
+      System.out.println("GPU: " + mln.getFormulas().get(0).countSatisfiedGroundings(state));
+    } else {
+      System.out.println("CPU: " + mln.getFormulas().get(0).countSatisfiedGroundingsCPU(state));
+    }
+    long endTime = System.nanoTime();
+    System.out.println("Time: " + (endTime - startTime)/1e9);
+    /*state.display();
     System.out.println(mln.getFormulas().get(0).countSatisfiedGroundings(state));
     System.out.println(mln.getFormulas().get(1).countSatisfiedGroundings(state));
     System.out.println(mln.getFormulas().get(2).countSatisfiedGroundings(state));
+    System.out.println(mln.getFormulas().get(0).countSatisfiedGroundingsCPU(state));
+    System.out.println(mln.getFormulas().get(1).countSatisfiedGroundingsCPU(state));
+    System.out.println(mln.getFormulas().get(2).countSatisfiedGroundingsCPU(state));*/
     
     return mln;
   }
