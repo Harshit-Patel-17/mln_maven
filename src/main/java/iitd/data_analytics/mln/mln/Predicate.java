@@ -87,7 +87,7 @@ public class Predicate {
       str += "!";
     str += predicateDef.getPredicateName();
     str += Arrays.deepToString(terms.toArray());
-    str += "=" + symbolicValue;
+    str += "=" + value;
     return str;
   }
   

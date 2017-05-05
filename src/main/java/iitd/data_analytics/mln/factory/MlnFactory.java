@@ -71,7 +71,6 @@ public class MlnFactory {
     
     //Add event listener for syntax directed definition. 
     //Refer to Mln.g4 to understand the class MyMlnBaseListener
-    //p.addParseListener(new MyMlnBaseListener(p, mln));
     ParseTreeWalker walker = new ParseTreeWalker();
     MyMlnBaseListener listener = new MyMlnBaseListener(p, mln);
     
@@ -95,6 +94,7 @@ public class MlnFactory {
     state.display();
     System.out.println(mln.getFormulas().get(0).countSatisfiedGroundings(state));
     System.out.println(mln.getFormulas().get(1).countSatisfiedGroundings(state));
+    System.out.println(mln.getFormulas().get(2).countSatisfiedGroundings(state));
     
     return mln;
   }
@@ -281,7 +281,7 @@ class MyMlnBaseListener extends MlnBaseListener {
       String term = terms.get(i);
       if(isVariable.get(i)) {
         //If term is variable then check for consistency of var-domain mapping
-        //If variable appears for the first time then create new var-dom mapping
+        //If variable appears for the first time then create new var-domain mapping
         if(varsDomain.containsKey(term)) {
           if(domain.getDomainId() != varsDomain.get(term).getDomainId()) {
             String msg = "Variable " + term + " doesn't have consistent "
