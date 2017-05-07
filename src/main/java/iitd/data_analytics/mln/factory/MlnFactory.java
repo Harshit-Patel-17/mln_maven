@@ -103,9 +103,15 @@ public class MlnFactory {
 
     long startTime = System.nanoTime();
     if(useGpu) {
-      System.out.println("GPU: " + mln.getFormulas().get(0).countSatisfiedGroundings(state));
+      for(int i = 0; i < 10; i++) {
+        //System.out.println("GPU: " + mln.getFormulas().get(0).countSatisfiedGroundings(state));
+        System.out.println("GPU NoDb: " + mln.getFormulas().get(0).countSatisfiedGroundingsNoDb(state));
+      }
     } else {
-      System.out.println("CPU: " + mln.getFormulas().get(0).countSatisfiedGroundingsCPU(state));
+      for(int i = 0; i < 10; i++) {
+        //System.out.println("CPU: " + mln.getFormulas().get(0).countSatisfiedGroundingsCPU(state));
+        System.out.println("CPU NoDb: " + mln.getFormulas().get(0).countSatisfiedGroundingsCPUNoDb(state));
+      }
     }
     long endTime = System.nanoTime();
     System.out.println("Time: " + (endTime - startTime)/1e9);

@@ -1,23 +1,31 @@
 #domains
-Dom1 = {Harshit, Ajita, Swarnadeep, Varuni}
-Dom2 = {1,...,3}
-Dom3 = {-1,...,1}
+Dom1 = {1,...,1000}
+Dom2 = {1,...,100}
+Dom3 = {1,...,100}
+//Dom1 = {Harshit, Ajita, Swarnadeep, Varuni}
+//Dom2 = {1,...,3}
+//Dom3 = {-1,...,1}
 //DomX = {0,1,2}
 //DomY = {0,1}
 //DomZ = {0,1}
 
 #predicates
-P(Dom1, Dom2) = {1,...,3}
-Q(Dom1) = {A, B, C, D}
+P(Dom1) = {0,1}
+Q(Dom2) = {0,1}
+R(Dom1, Dom3) = {0,1}
+//P(Dom1, Dom2) = {1,...,3}
+//Q(Dom1) = {A, B, C, D}
 //P(DomX, DomY) = {0,1}
 //Q(DomX, DomZ) = {0,1}
 //R(DomZ) = {0,1}
 
 #formulas
+//R(x, y) = 0
+(P(x) = 0 v Q(y) = 0 v R(x, z) = 1) ^ (P(x) = 0 v Q(y) = 0 v R(x, z) = 1)
 //P(Harshit, 1) = 1
 //(P(Harshit, 2) = 3 => Q(Varuni) = B) v (P(Ajita, 1) = 2 <=> Q(Swarnadeep) = D)
 //Q(x) = C
 //P(x, y) = 2
-P(x, y) = 3 => Q(Varuni) = B v P(Ajita, y) = 2 <=> Q(Swarnadeep) = D
+//P(x, y) = 3 => Q(Varuni) = B v P(Ajita, y) = 2 <=> Q(Swarnadeep) = D
 //P(x,y) = 1 v Q(x,z) = 1 v R(z) = 1
 //P(x,y) = 1 ^ Q(x,z) = 1 ^ R(z) = 1

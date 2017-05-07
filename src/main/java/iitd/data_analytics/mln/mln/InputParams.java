@@ -10,6 +10,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import iitd.data_analytics.mln.gpu.GpuConfig;;
+
 public class InputParams {
   
   private String mlnFile;
@@ -25,6 +27,7 @@ public class InputParams {
     
     mlnFile = doc.getElementsByTagName("mln").item(0).getTextContent();
     useGpu = (doc.getElementsByTagName("gpu").item(0).getTextContent().equalsIgnoreCase("yes"));
+    GpuConfig.ptxBase = doc.getElementsByTagName("ptxPath").item(0).getTextContent();
   }
   
   public String getMlnFile() {

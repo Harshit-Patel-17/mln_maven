@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <input>
 	<mln>src/test/antlr4/example.mln</mln>
-	<gpu>no</gpu>
+	<gpu>yes</gpu>
+	<ptxPath>src/main/java/iitd/data_analytics/mln/gpu/</ptxPath>
 </input>

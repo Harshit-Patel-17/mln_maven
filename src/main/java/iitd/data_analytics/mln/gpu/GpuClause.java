@@ -59,7 +59,7 @@ public class GpuClause {
       predBaseIdx[i] = baseIndex;
     }
     
-    initDbIndex();
+    //initDbIndex(); //TODO: Uncomment it later
   }
   
   private void initDbIndex()

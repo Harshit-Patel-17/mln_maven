@@ -53,7 +53,9 @@ public abstract class Formula {
   
   //Abstract methods
   public abstract long countSatisfiedGroundings(State state);
+  public abstract long countSatisfiedGroundingsNoDb(State state);
   public abstract long countSatisfiedGroundingsCPU(State state);
+  public abstract long countSatisfiedGroundingsCPUNoDb(State state);
   
   //Display on stdout
   @Override

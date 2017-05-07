@@ -16,6 +16,28 @@ __global__ void regularCompactKernel(int *d_A, int *d_B, long size, int interval
     d_B[idx] = d_A[idx * intervalSize];
 }
 
+/*extern "C"
+__global__ void sumKernel(int *d_A, long size)
+{
+
+	long idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+	int iters = ceil(log2((blockDim.x));
+	int n = 1, m = 2;
+
+	for (int i = 0; i < iters; i++)
+	{
+		if ((threadIdx.x + n) < blockDim.x && (threadIdx.x & (m - 1)) == 0)
+			A[threadIdx.x] += A[threadIdx.x + n];
+		n <<= 1;
+		m <<= 1;
+		__syncthreads();
+	}
+
+	if (threadIdx.x == 0)
+		d_A[idx] = A[0];
+}*/
+
 extern "C"
 __global__ void sumKernel(int *d_A, long size)
 {
@@ -33,7 +55,7 @@ __global__ void sumKernel(int *d_A, long size)
 
   for(int i = 0; i < iters; i++)
     {
-      if((threadIdx.x + n) < blockDim.x && (threadIdx.x & (m-1)) == 0)
+      if((threadIdx.x + n) < blockDim.x && (idx + n) < size && (threadIdx.x & (m-1)) == 0)
 	A[threadIdx.x] += A[threadIdx.x + n];
       n <<= 1;
       m <<= 1;

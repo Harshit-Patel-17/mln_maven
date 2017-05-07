@@ -86,8 +86,8 @@ intrange
 	;
 
 COMMENT
-	: COMMENTSYM (.)*? NEWLINE
-	| COMMENTSYM (.)*? EOF
+	: '//' (.)*? '\n'
+	| '//' (.)*? EOF
 	;
 
 INTEGER
@@ -144,14 +144,6 @@ MINUS
 	
 COMMA
 	: ','
-	;
-	
-COMMENTSYM
-	: '//'
-	;
-	
-NEWLINE
-	: '\n'
 	;
 	
 ELLIPSIS
