@@ -15,6 +15,8 @@ import iitd.data_analytics.mln.gpu.GpuConfig;;
 public class InputParams {
   
   private String mlnFile;
+  private String queryFile;
+  private String evidenceFile;
   private boolean useGpu;
   
   public InputParams(String xmlFilePath) throws ParserConfigurationException, SAXException, IOException {
@@ -26,12 +28,22 @@ public class InputParams {
     doc.getDocumentElement().normalize();
     
     mlnFile = doc.getElementsByTagName("mln").item(0).getTextContent();
+    queryFile = doc.getElementsByTagName("query").item(0).getTextContent();
+    evidenceFile = doc.getElementsByTagName("evidence").item(0).getTextContent();
     useGpu = (doc.getElementsByTagName("gpu").item(0).getTextContent().equalsIgnoreCase("yes"));
     GpuConfig.ptxBase = doc.getElementsByTagName("ptxPath").item(0).getTextContent();
   }
   
   public String getMlnFile() {
     return mlnFile;
+  }
+  
+  public String getQueryFile() {
+    return queryFile;
+  }
+  
+  public String getEvidenceFile() {
+    return evidenceFile;
   }
   
   public boolean useGpu() {

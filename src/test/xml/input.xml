@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <input>
-	<mln>src/test/antlr4/example.mln</mln>
+	<mln>src/test/antlr4/mln.txt</mln>
+	<query>src/test/antlr4/query.txt</query>
+	<evidence>src/test/antlr4/evidence.txt</evidence>
 	<gpu>yes</gpu>
 	<ptxPath>src/main/java/iitd/data_analytics/mln/gpu/</ptxPath>
 </input>

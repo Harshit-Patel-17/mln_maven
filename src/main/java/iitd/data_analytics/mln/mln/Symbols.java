@@ -2,6 +2,7 @@ package iitd.data_analytics.mln.mln;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class Symbols {
   
@@ -14,6 +15,10 @@ public class Symbols {
   
   public int getIdFromSymbol(String symbol) {
     return (int) symbolToId.get(symbol);
+  }
+  
+  public Set<String> getSymbols() {
+    return symbolToId.keySet();
   }
   
   public void addMapping(int id, String symbol) {

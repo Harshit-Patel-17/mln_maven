@@ -2,12 +2,14 @@ package iitd.data_analytics.mln.factory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -17,14 +19,20 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+import evidence_parser.EvidenceLexer;
+import evidence_parser.EvidenceParser;
+import evidence_parser.EvidenceParser.EvidenceContext;
 import iitd.data_analytics.mln.exceptions.MlnParseException;
+import iitd.data_analytics.mln.exceptions.QueryParseException;
 import iitd.data_analytics.mln.gpu.GpuState;
 import iitd.data_analytics.mln.logic.FirstOrderFormula;
+import iitd.data_analytics.mln.mln.Config;
 import iitd.data_analytics.mln.mln.Domain;
 import iitd.data_analytics.mln.mln.InputParams;
 import iitd.data_analytics.mln.mln.Mln;
 import iitd.data_analytics.mln.mln.Predicate;
 import iitd.data_analytics.mln.mln.PredicateDef;
+import iitd.data_analytics.mln.mln.PredicateGroundingIndex;
 import iitd.data_analytics.mln.mln.State;
 import iitd.data_analytics.mln.mln.Symbols;
 import mln_parser.*;
@@ -43,17 +51,62 @@ import mln_parser.MlnParser.PredicateContext;
 import mln_parser.MlnParser.PredicateDef1Context;
 import mln_parser.MlnParser.PredicateDef2Context;
 import mln_parser.MlnParser.PredicateDef3Context;
+import query_parser.QueryLexer;
+import query_parser.QueryParser;
+import query_parser.QueryParser.QueryContext;
 
 public class MlnFactory {
   
-  public Mln createMln(InputParams inputParams) throws MlnParseException, IOException, InterruptedException {
+  public Mln createMln(InputParams inputParams) throws MlnParseException, IOException, InterruptedException, QueryParseException {
+    
+    Mln mln = parseMlnFile(inputParams.getMlnFile());
+    mln.addState(new GpuState(mln.getPredicateDefs()));
+    parseQueryFile(inputParams.getQueryFile(), mln);
+    parseEvidenceFile(inputParams.getEvidenceFile(), mln);
+    
+    State state = mln.getState();
+
+    long startTime = System.nanoTime();
+    if(inputParams.useGpu()) {
+      for(int i = 0; i < 1; i++) {
+        //System.out.println("GPU: " + mln.getFormulas().get(0).countSatisfiedGroundings(state));
+        System.out.println("GPU NoDb: " + mln.getFormulas().get(0).countSatisfiedGroundingsNoDb(state));
+      }
+    } else {
+      for(int i = 0; i < 1; i++) {
+        //System.out.println("CPU: " + mln.getFormulas().get(0).countSatisfiedGroundingsCPU(state));
+        System.out.println("CPU NoDb: " + mln.getFormulas().get(0).countSatisfiedGroundingsCPUNoDb(state));
+      }
+    }
+    long endTime = System.nanoTime();
+    System.out.println("Time: " + (endTime - startTime)/1e9);
+    /*state.display();
+    System.out.println(mln.getFormulas().get(0).countSatisfiedGroundings(state));
+    System.out.println(mln.getFormulas().get(1).countSatisfiedGroundings(state));
+    System.out.println(mln.getFormulas().get(2).countSatisfiedGroundings(state));
+    System.out.println(mln.getFormulas().get(0).countSatisfiedGroundingsCPU(state));
+    System.out.println(mln.getFormulas().get(1).countSatisfiedGroundingsCPU(state));
+    System.out.println(mln.getFormulas().get(2).countSatisfiedGroundingsCPU(state));*/
+    
+    for(int i = 0; i < 10; i++) {
+      PredicateGroundingIndex predicateGroundingIndex = state.randomlySelectUnknownGrounding();
+      Random random = new Random(Config.seed);
+      int vals = mln.getPredicateDefs().get(predicateGroundingIndex.predicateId).getVals().size();
+      state.setGrounding(predicateGroundingIndex, random.nextInt(vals));
+      System.out.println("GPU NoDb: " + mln.getFormulas().get(0).countSatisfiedGroundingsNoDb(state));
+      System.out.println("CPU NoDb: " + mln.getFormulas().get(0).countSatisfiedGroundingsCPUNoDb(state));
+      System.out.println("");
+    }
+
+    return mln;
+  }
+  
+  private Mln parseMlnFile(String mlnFileName) throws IOException, MlnParseException {
     //New MLN object
     Mln mln = new Mln();
     
     //Create input stream
-    String inputFile = inputParams.getMlnFile();
-    boolean useGpu = inputParams.useGpu();
-    File f = new File(inputFile);
+    File f = new File(mlnFileName);
     InputStream in = new FileInputStream(f);
     
     //Create MLN lexer object
@@ -86,245 +139,81 @@ public class MlnFactory {
     
     //Walk parse tree
     walker.walk(listener, mlnContext);
-    
-    //MLN create. Build State
-    State state = new GpuState(mln.getPredicateDefs());
-    
-    /*System.out.println("\nDomains");
-    //mln.displayDomainSymbols();
-    mln.displayDomains();
-    
-    System.out.println("\nPredicates");
-    mln.displayPredicateDefs();
-    
-    System.out.println("\nFormulas");
-    //mln.displayFormulasSymbolic();
-    mln.displayFormulas();*/
 
-    long startTime = System.nanoTime();
-    if(useGpu) {
-      for(int i = 0; i < 10; i++) {
-        //System.out.println("GPU: " + mln.getFormulas().get(0).countSatisfiedGroundings(state));
-        System.out.println("GPU NoDb: " + mln.getFormulas().get(0).countSatisfiedGroundingsNoDb(state));
-      }
-    } else {
-      for(int i = 0; i < 10; i++) {
-        //System.out.println("CPU: " + mln.getFormulas().get(0).countSatisfiedGroundingsCPU(state));
-        System.out.println("CPU NoDb: " + mln.getFormulas().get(0).countSatisfiedGroundingsCPUNoDb(state));
-      }
-    }
-    long endTime = System.nanoTime();
-    System.out.println("Time: " + (endTime - startTime)/1e9);
-    /*state.display();
-    System.out.println(mln.getFormulas().get(0).countSatisfiedGroundings(state));
-    System.out.println(mln.getFormulas().get(1).countSatisfiedGroundings(state));
-    System.out.println(mln.getFormulas().get(2).countSatisfiedGroundings(state));
-    System.out.println(mln.getFormulas().get(0).countSatisfiedGroundingsCPU(state));
-    System.out.println(mln.getFormulas().get(1).countSatisfiedGroundingsCPU(state));
-    System.out.println(mln.getFormulas().get(2).countSatisfiedGroundingsCPU(state));*/
-    
     return mln;
   }
-}
-
-class MyMlnBaseListener extends MlnBaseListener {
-  //Have a look at Mln.g4 file to understand this class
   
-  private MlnParser p;
-  private Mln mln;
-  Map<String,Domain> varsDomain;
-  Symbols varsId;
-  
-  public MyMlnBaseListener(MlnParser _p, Mln _mln) {
-    super();
-    p = _p;
-    mln = _mln;
-    varsDomain = new HashMap<String,Domain>();
-    varsId = new Symbols();
-  }
-  
-  @Override
-  public void exitDomain1(Domain1Context ctx) {
-    super.exitDomain1(ctx);
-    checkForRedeclaration(ctx.domainName1.getText());
-    mln.addDomain(ctx.domainName1.getText(), parseList(ctx.vals1.getText()));
-  }
-  
-  @Override
-  public void exitDomain2(Domain2Context ctx) {
-    super.exitDomain2(ctx);
-    checkForRedeclaration(ctx.domainName2.getText());
-    mln.addDomain(ctx.domainName2.getText(), genRange(ctx.vals2.getText()));
-  }
-  
-  @Override
-  public void exitPredicateDef1(PredicateDef1Context ctx) {
-    super.exitPredicateDef1(ctx);
-    checkForRedeclaration(ctx.predicateName1.getText());
-    mln.addPredicate(ctx.predicateName1.getText(), parseList(ctx.doms1.getText()),
-        parseList(ctx.vals1.getText()));
-  }
-  
-  @Override
-  public void exitPredicateDef2(PredicateDef2Context ctx) {
-    super.exitPredicateDef2(ctx);
-    checkForRedeclaration(ctx.predicateName2.getText());
-    mln.addPredicate(ctx.predicateName2.getText(), parseList(ctx.doms2.getText()),
-        genRange(ctx.vals2.getText()));
-  }
-  
-  @Override
-  public void exitPredicateDef3(PredicateDef3Context ctx) {
-    super.exitPredicateDef3(ctx);
-    //TODO: Handle this case
-    checkForRedeclaration(ctx.predicateName3.getText());
-    mln.addPredicate(ctx.predicateName3.getText(), parseList(ctx.doms3.getText()),
-        ctx.vals3.getText());
-  }
-  
-  @Override
-  public void exitFormulaBody2(FormulaBody2Context ctx) {
-    super.exitFormulaBody2(ctx);
-    mln.addFormula(ctx.formula().foFormula, varsDomain, varsId);
-    varsDomain = new HashMap<String,Domain>();
-    varsId = new Symbols();
-  }
-  
-  @Override
-  public void exitFormula1(Formula1Context ctx) {
-    super.exitFormula1(ctx);
-    ctx.foFormula = new FirstOrderFormula<Predicate>(ctx.predicate().pred);
-  }
-  
-  @Override
-  public void exitFormula2(Formula2Context ctx) {
-    super.exitFormula2(ctx);
-    ctx.foFormula = new FirstOrderFormula<Predicate>(FirstOrderFormula.NodeType.NOT,
-        ctx.formula().foFormula);
-  }
-  
-  @Override
-  public void exitFormula3(Formula3Context ctx) {
-    super.exitFormula3(ctx);
-    ctx.foFormula = new FirstOrderFormula<Predicate>(FirstOrderFormula.NodeType.AND,
-        ctx.formula(0).foFormula, ctx.formula(1).foFormula);
-  }
-  
-  @Override
-  public void exitFormula4(Formula4Context ctx) {
-    super.exitFormula4(ctx);
-    ctx.foFormula = new FirstOrderFormula<Predicate>(FirstOrderFormula.NodeType.OR,
-        ctx.formula(0).foFormula, ctx.formula(1).foFormula);
-  }
-  
-  @Override
-  public void exitFormula5(Formula5Context ctx) {
-    super.exitFormula5(ctx);
-    ctx.foFormula = new FirstOrderFormula<Predicate>(FirstOrderFormula.NodeType.IMPLY,
-        ctx.formula(0).foFormula, ctx.formula(1).foFormula);
-  }
-  
-  @Override
-  public void exitFormula6(Formula6Context ctx) {
-    super.exitFormula6(ctx);
-    ctx.foFormula = new FirstOrderFormula<Predicate>(FirstOrderFormula.NodeType.EQUIV,
-        ctx.formula(0).foFormula, ctx.formula(1).foFormula);
-  }
-  
-  @Override
-  public void exitFormula7(Formula7Context ctx) {
-    super.exitFormula7(ctx);
-    ctx.foFormula = ctx.formula().foFormula;
-  }
-  
-  @Override
-  public void exitPredicate(PredicateContext ctx) {
-    super.exitPredicate(ctx);
-    String predicateName = ctx.predicateName1.getText();
-    ArrayList<String> terms = parseList(ctx.terms1.getText());
-    String val = ctx.val1.getText();
-    ctx.pred = validateAndCreatePredicate(predicateName, terms, val);
-  }
-  
-  private ArrayList<String> parseList(String csv) {
-    return new ArrayList<String>(Arrays.asList(csv.split(",")));
-  }
-  
-  private ArrayList<String> genRange(String csv) {
-    ArrayList<String> list = new ArrayList<String>();
-    String[] split = csv.split(",");
-    int startVal = Integer.parseInt(split[0]);
-    int endVal = Integer.parseInt(split[2]);
+  private void parseQueryFile(String queryFile, Mln mln) throws IOException, QueryParseException {
+    //Create input stream
+    File f = new File(queryFile);
+    InputStream in = new FileInputStream(f);
     
-    if(startVal > endVal) {
-      String msg = "Start value cannot be greater than end value in range declaration";
-      p.notifyErrorListeners(msg);
-    }
-    for(int i = startVal; i <= endVal; i++) {
-      list.add(Integer.toString(i));
-    }
-    return list;
-  }
-  
-  private void checkForRedeclaration(String name) {
-    String msg = "";
-    if(mln.getDomainSymbols().exist(name)) {
-      msg = name + " was earlier used as domain name.";
-      p.notifyErrorListeners(msg);
-    }
-    if(mln.getPredicateSymbols().exist(name)) {
-      msg = name + " was earlier used as predicate name.";
-      p.notifyErrorListeners(msg);
-    }
-  }
-  
-  private Predicate validateAndCreatePredicate(String predicateName,
-      ArrayList<String> terms, String val) {
-    PredicateDef predicateDef = mln.getPredicateDefByName(predicateName);
-    ArrayList<Boolean> isVariable = new ArrayList<Boolean>();
-    for(String term : terms) {
-      isVariable.add(Character.isLowerCase(term.charAt(0)));
-    }
-    unifyTermsWithDomains(predicateName, predicateDef.getDomains(), terms, isVariable);
-    if(!predicateDef.getVals().exist(val)) {
-      String msg = "Value of predicate " + predicateName + " doesn't match with any valid "
-          + "values in definition.";
-      p.notifyErrorListeners(msg);
-    }
-    Predicate p = new Predicate(predicateDef, terms, isVariable, val, varsId);
-    return p;
-  }
-  
-  private void unifyTermsWithDomains(String predicateName, ArrayList<Domain> domains,
-      ArrayList<String> terms, ArrayList<Boolean> isVariable) {
-    if(domains.size() != terms.size()) {
-      String msg = "Number of terms of predicate " + predicateName + " doesn't "
-          + "matches with its definition.";
-      p.notifyErrorListeners(msg);
-    }
+    //Create MLN lexer object
+    QueryLexer l = new QueryLexer(CharStreams.fromStream(in));
     
-    for(int i = 0; i < domains.size(); i++) {
-      Domain domain = domains.get(i);
-      String term = terms.get(i);
-      if(isVariable.get(i)) {
-        //If term is variable then check for consistency of var-domain mapping
-        //If variable appears for the first time then create new var-domain mapping
-        if(varsDomain.containsKey(term)) {
-          if(domain.getDomainId() != varsDomain.get(term).getDomainId()) {
-            String msg = "Variable " + term + " doesn't have consistent "
-                + "domain in the formula.";
-            p.notifyErrorListeners(msg);
-          }          
-        } else {
-          varsDomain.put(term, domain);
-          varsId.addMapping(varsId.size(), term);
-        }
-      } else {
-        if(!domain.exist(term)) {
-          String msg = "Value " + term + " doesn't exist in domain " + domain.getDomainName();
-          p.notifyErrorListeners(msg);
-        }
+    //Create MLN parser object
+    QueryParser p = new QueryParser(new CommonTokenStream(l));
+    
+    //Parse file
+    QueryContext queryContext = p.query();
+    if(p.getNumberOfSyntaxErrors() != 0)
+      throw new QueryParseException("Error in parsing MLN file");
+    
+    //File successfully parsed. Remove default error listener
+    //Add custom error listener to throw exceptions on parsing errors
+    p.removeErrorListeners();
+    p.addErrorListener(new BaseErrorListener() {
+      public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, 
+          int charPositionInLine, String msg, RecognitionException e) {
+        String position = line + ":" + charPositionInLine;
+        throw new IllegalStateException("failed to parse at line " + position + " " + msg);
       }
-    }
+      
+    });
+    
+    //Add event listener for syntax directed definition. 
+    //Refer to Mln.g4 to understand the class MyMlnBaseListener
+    ParseTreeWalker walker = new ParseTreeWalker();
+    MyQueryBaseListener listener = new MyQueryBaseListener(p, mln);
+    
+    //Walk parse tree
+    walker.walk(listener, queryContext);
+  }
+  
+  private void parseEvidenceFile(String evidenceFile, Mln mln) throws IOException, QueryParseException {
+    //Create input stream
+    File f = new File(evidenceFile);
+    InputStream in = new FileInputStream(f);
+    
+    //Create MLN lexer object
+    EvidenceLexer l = new EvidenceLexer(CharStreams.fromStream(in));
+    
+    //Create MLN parser object
+    EvidenceParser p = new EvidenceParser(new CommonTokenStream(l));
+    
+    //Parse file
+    EvidenceContext evidenceContext = p.evidence();
+    if(p.getNumberOfSyntaxErrors() != 0)
+      throw new QueryParseException("Error in parsing MLN file");
+    
+    //File successfully parsed. Remove default error listener
+    //Add custom error listener to throw exceptions on parsing errors
+    p.removeErrorListeners();
+    p.addErrorListener(new BaseErrorListener() {
+      public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, 
+          int charPositionInLine, String msg, RecognitionException e) {
+        String position = line + ":" + charPositionInLine;
+        throw new IllegalStateException("failed to parse at line " + position + " " + msg);
+      }
+      
+    });
+    
+    //Add event listener for syntax directed definition. 
+    //Refer to Mln.g4 to understand the class MyMlnBaseListener
+    ParseTreeWalker walker = new ParseTreeWalker();
+    MyEvidenceBaseListener listener = new MyEvidenceBaseListener(p, mln);
+    
+    //Walk parse tree
+    walker.walk(listener, evidenceContext);
   }
 }

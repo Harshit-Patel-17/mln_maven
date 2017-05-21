@@ -9,6 +9,8 @@ public class PredicateGroundings {
     private PredicateDef predicateDef;
     private int totalGroundings;
     private int[] groundings;
+    private boolean[] isQuery;
+    private boolean[] isEvidence;
     private ArrayList<Integer> unknownGroundings;
     private Random random;
     
@@ -19,6 +21,8 @@ public class PredicateGroundings {
         totalGroundings *= domain.size();
       }
       groundings = new int[totalGroundings];
+      isQuery = new boolean[totalGroundings];
+      isEvidence = new boolean[totalGroundings];
       unknownGroundings = new ArrayList<Integer>();
       random = new Random(Config.seed);
       for(int i = 0; i < totalGroundings; i++) {
@@ -34,11 +38,30 @@ public class PredicateGroundings {
     public int[] getGroundings() {
       return groundings;
     }
-  
-    public void addEvidence(ArrayList<String> symbolicTerms, int val) {
-      int idx = getGroundingIdx(symbolicTerms);
+    
+    public int getPredicateId() {
+      return predicateDef.getPredicateId();
+    }
+    
+    public ArrayList<Integer> getUnknownGroundings() {
+      return unknownGroundings;
+    }
+    
+    public void setGrounding(int idx, int val) {
+      assert predicateDef.getVals().exist(val) : "Illegal value has been assigned to a grounding";
       groundings[idx] = val;
+    }
+    
+    public void addQuery(ArrayList<String> symbolicTerms) {
+      int idx = getGroundingIdx(symbolicTerms);
+      isQuery[idx] = true;
+    }
+  
+    public void addEvidence(ArrayList<String> symbolicTerms, String symbolicVal) {
+      int idx = getGroundingIdx(symbolicTerms);
+      groundings[idx] = predicateDef.getVals().getIdFromSymbol(symbolicVal);
       unknownGroundings.remove(new Integer(idx));
+      isEvidence[idx] = true;
     }
     
     @Override

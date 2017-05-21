@@ -3,6 +3,7 @@ package iitd.data_analytics.mln.gpu;
 import java.util.ArrayList;
 
 import iitd.data_analytics.mln.mln.PredicateDef;
+import iitd.data_analytics.mln.mln.PredicateGroundingIndex;
 import iitd.data_analytics.mln.mln.State;
 
 import static jcuda.driver.JCudaDriver.*;
@@ -32,6 +33,21 @@ public class GpuState extends State {
         CUresult.CUDA_SUCCESS;
     assert cuMemcpyHtoD(allGroundings[predicateId], Pointer.to(groundings), 
         groundings.length * Sizeof.INT) == CUresult.CUDA_SUCCESS;
+  }
+  
+  @Override
+  public PredicateGroundingIndex randomlySelectUnknownGrounding() {
+    return super.randomlySelectUnknownGrounding();
+  }
+  
+  @Override
+  public void setGrounding(PredicateGroundingIndex predGroundingIdx, int val) {
+    super.setGrounding(predGroundingIdx, val);
+    
+    int predicateId = predGroundingIdx.predicateId;
+    int groundingId = predGroundingIdx.groundingId;
+    CUdeviceptr updateLocation = allGroundings[predicateId].withByteOffset(groundingId * Sizeof.INT);
+    assert cuMemcpyHtoD(updateLocation, Pointer.to(new int[]{val}), Sizeof.INT) == CUresult.CUDA_SUCCESS;
   }
 
   @Override

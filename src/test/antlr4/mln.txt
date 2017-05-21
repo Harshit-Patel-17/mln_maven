@@ -1,0 +1,18 @@
+#domains
+Dom1 = {1,...,5}
+Dom2 = {1,...,5}
+//Dom1 = {1,...,1000}
+//Dom2 = {1,...,100}
+//Dom3 = {1,...,100}
+
+#predicates
+P(Dom1) = {0,...,1}
+Q(Dom1) = {0,1}
+R(Dom1, Dom2, Dom1) = {0,1}
+//P(Dom1) = {0,1}
+//Q(Dom2) = {0,1}
+//R(Dom1, Dom3) = {0,1}
+
+#formulas
+P(x) = 0 ^ Q(y) = 1
+//(P(x) = 0 v Q(y) = 0 v R(x, z) = 1) ^ (P(x) = 0 v Q(y) = 0 v R(x, z) = 1)
