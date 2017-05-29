@@ -21,6 +21,10 @@ public class Symbols {
     return symbolToId.keySet();
   }
   
+  public Set<Integer> getIds() {
+    return idToSymbol.keySet();
+  }
+  
   public void addMapping(int id, String symbol) {
     symbolToId.put(symbol, id);
     idToSymbol.put(id, symbol);

@@ -88,7 +88,8 @@ public class MyMlnBaseListener extends MlnBaseListener{
   @Override
   public void exitFormulaBody2(FormulaBody2Context ctx) {
     super.exitFormulaBody2(ctx);
-    mln.addFormula(ctx.formula().foFormula, varsDomain, varsId);
+    double weight = Double.parseDouble(ctx.w.getText());
+    mln.addFormula(ctx.formula().foFormula, varsDomain, varsId, weight);
     varsDomain = new HashMap<String,Domain>();
     varsId = new Symbols();
   }

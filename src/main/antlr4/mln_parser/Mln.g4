@@ -47,7 +47,7 @@ formulaBlock
 	
 formulaBody
 	: #formulaBody1
-	| formulaBody formula #formulaBody2
+	| formulaBody w=(INTEGER|REAL)'::'formula #formulaBody2
 	| formulaBody COMMENT #formulaBody3
 	;
 	

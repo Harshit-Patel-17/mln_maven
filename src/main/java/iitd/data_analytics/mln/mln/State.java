@@ -1,5 +1,7 @@
 package iitd.data_analytics.mln.mln;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -64,6 +66,18 @@ public abstract class State {
     predicateGroundings[predicateId].setGrounding(groundingId, val);
   }
   
+  public void increaseMarginalCounts() {
+    for(PredicateGroundings predGroundings : predicateGroundings) {
+      predGroundings.increaseMarginalCounts();
+    }
+  }
+  
+  public void resetMarginalCounts() {
+    for(PredicateGroundings predGroundings : predicateGroundings) {
+      predGroundings.resetMarginalCounts();
+    }
+  }
+  
   @Override
   public String toString() {
     String str = "";
@@ -76,6 +90,14 @@ public abstract class State {
   
   public void display() {
     System.out.print(this);
+  }
+  
+  public void outputMaxMarginals(String outputFile) throws FileNotFoundException {
+    PrintWriter writer = new PrintWriter(outputFile);
+    for(PredicateGroundings predGroundings : predicateGroundings) {
+      predGroundings.outputMaxMarginals(writer);
+    }
+    writer.close();
   }
   
 }

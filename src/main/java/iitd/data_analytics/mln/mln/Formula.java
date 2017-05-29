@@ -10,12 +10,13 @@ import iitd.data_analytics.mln.logic.Literal;
 public abstract class Formula {
 
   private int formulaId;
+  private double weight;
   private ArrayList<ArrayList<Predicate>> clauses;
   private Map<String,Domain> varsDomain;
   private Symbols varsId;
   
   public Formula(int _formulaId, FirstOrderFormula<Predicate> foFormula, 
-      Map<String,Domain> _varsDomain, Symbols _varsId) {
+      Map<String,Domain> _varsDomain, Symbols _varsId, double _weight) {
     formulaId = _formulaId;
     
     clauses = new ArrayList<ArrayList<Predicate>>();
@@ -32,11 +33,16 @@ public abstract class Formula {
     
     varsDomain = _varsDomain;
     varsId = _varsId;
+    weight = _weight;
   }
   
   //Getters and Setters
   public int getFormulaId() {
     return formulaId;
+  }
+  
+  public double getWeight() {
+    return weight;
   }
   
   public ArrayList<ArrayList<Predicate>> getClauses() {
@@ -51,6 +57,18 @@ public abstract class Formula {
     return varsId;
   }
   
+  public boolean groundAtomExist(int predicateId, int[] vals) {
+    for(ArrayList<Predicate> clause : clauses) {
+      for(Predicate atom : clause) {
+        if(atom.getPredicateDef().getPredicateId() == predicateId && atom.isUnifiable(vals)) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+  
   //Abstract methods
   public abstract long countSatisfiedGroundings(State state);
   public abstract long countSatisfiedGroundingsNoDb(State state);
@@ -60,7 +78,7 @@ public abstract class Formula {
   //Display on stdout
   @Override
   public String toString() {    
-    String str = "id:" + formulaId + " ";
+    String str = "id:" + formulaId + " " + "w:" + weight + " ";
     for(ArrayList<Predicate> _clause : clauses) {
       str += Arrays.deepToString(_clause.toArray());
       str += " ";
@@ -70,7 +88,7 @@ public abstract class Formula {
   }
   
   public void displaySymbolic() {
-    System.out.print("id:" + formulaId);
+    System.out.print("id:" + formulaId + "w:" + weight);
     for(ArrayList<Predicate> _clause : clauses) {
       System.out.print(" (");
       for(Predicate p : _clause) {

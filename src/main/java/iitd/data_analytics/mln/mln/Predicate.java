@@ -2,6 +2,8 @@ package iitd.data_analytics.mln.mln;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Predicate {
 
@@ -77,6 +79,34 @@ public class Predicate {
   
   public ArrayList<Boolean> getIsVariable() {
     return isVariable;
+  }
+  
+  public boolean isUnifiable(int[] vals) {
+    if(vals.length != terms.size()) {
+      return false;
+    }
+    
+    Map<Integer,Integer> varBindings = new HashMap<Integer,Integer>();
+    for(int i = 0; i < terms.size(); i++) {
+      int term = terms.get(i);
+      int val = vals[i];
+      boolean isVar = isVariable.get(i);
+      if(isVar) {
+        if(varBindings.containsKey(term)) {
+          if(varBindings.get(term) != val) {
+            return false;
+          }
+        } else {
+          varBindings.put(term, val);
+        }
+      } else {
+        if(term != val) {
+          return false;
+        }
+      }
+    }
+    
+    return true;
   }
   
   //display on stdout

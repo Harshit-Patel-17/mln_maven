@@ -115,10 +115,10 @@ public class Mln {
   }
   
   public void addFormula(FirstOrderFormula<Predicate> foFormula, 
-      Map<String,Domain> varsDomain, Symbols varsId) {
+      Map<String,Domain> varsDomain, Symbols varsId, double weight) {
     //Size of formulas is the id for the next formula
     int formulaId = formulas.size();
-    formulas.add(new GpuFormula(formulaId, foFormula, varsDomain, varsId));
+    formulas.add(new GpuFormula(formulaId, foFormula, varsDomain, varsId, weight));
   }
   
   public void addState(State _state) {

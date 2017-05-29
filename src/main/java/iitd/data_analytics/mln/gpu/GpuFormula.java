@@ -20,8 +20,8 @@ public class GpuFormula extends Formula {
   private int maxThreads;
   
   public GpuFormula(int _formulaId, FirstOrderFormula<Predicate> foFormula, 
-      Map<String,Domain> _varsDomain, Symbols _varsId) {
-    super(_formulaId, foFormula, _varsDomain, _varsId);
+      Map<String,Domain> _varsDomain, Symbols _varsId, double _weight) {
+    super(_formulaId, foFormula, _varsDomain, _varsId, _weight);
     
     totalVars = _varsId.size();
     varDomainSizes = new int[totalVars];
