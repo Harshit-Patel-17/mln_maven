@@ -69,7 +69,7 @@ public class MlnFactory {
     State state = mln.getState();
     
     long startTime = System.nanoTime();
-    GibbsSampler gibbsSampler = new GibbsSampler(mln, state, 1000, 50000);
+    GibbsSampler gibbsSampler = new GibbsSampler(mln, state, 1000, 10000);
     gibbsSampler.generateMarginals();
     state.outputMaxMarginals(inputParams.getOutputFile());
     long endTime = System.nanoTime();

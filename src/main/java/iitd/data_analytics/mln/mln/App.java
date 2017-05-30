@@ -7,24 +7,22 @@ import java.io.InputStream;
 
 import iitd.data_analytics.mln.exceptions.MlnParseException;
 import iitd.data_analytics.mln.factory.MlnFactory;
+import iitd.data_analytics.mln.gpu.GpuConfig;
 
 import static jcuda.driver.JCudaDriver.*;
 import jcuda.driver.*;
 
-/**
- * Hello world!
- *
- */
 public class App 
 {
   public static void main( String[] args ) throws Exception
   {
     //Create GPU context
-    cuInit(0);
-    CUdevice device = new CUdevice();
+    GpuConfig.initGpuConfig();
+    cuCtxSetCurrent(GpuConfig.context[0]);
+    /*CUdevice device = new CUdevice();
     cuDeviceGet(device, 0);
     CUcontext context = new CUcontext();
-    cuCtxCreate(context, 0, device);
+    cuCtxCreate(context, 0, device);*/
     
     if(args.length == 0)
       throw new Exception("Expecting input xml file name as an argument.");
@@ -34,6 +32,6 @@ public class App
     mlnFactory.createMln(inputParams);
     
     //Destroy GPU context
-    cuCtxDestroy(context);
+    /*cuCtxDestroy(context);*/
   }
 }

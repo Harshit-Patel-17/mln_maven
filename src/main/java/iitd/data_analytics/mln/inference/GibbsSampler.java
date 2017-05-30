@@ -3,6 +3,7 @@ package iitd.data_analytics.mln.inference;
 import java.util.HashSet;
 import java.util.Set;
 
+import iitd.data_analytics.mln.gpu.GpuConfig;
 import iitd.data_analytics.mln.mln.Formula;
 import iitd.data_analytics.mln.mln.Mln;
 import iitd.data_analytics.mln.mln.PredicateDef;
@@ -26,7 +27,7 @@ public class GibbsSampler {
     state.resetMarginalCounts();
   }
   
-  private Set<Formula> affectedFormulas(PredicateGroundingIndex predGroundingIdx) {
+  private Formula[] affectedFormulas(PredicateGroundingIndex predGroundingIdx) {
     Set<Formula> formulas = new HashSet<Formula>();
     
     int predicateId = predGroundingIdx.predicateId;
@@ -38,22 +39,26 @@ public class GibbsSampler {
       }
     }
     
-    return formulas;
+    return formulas.toArray(new Formula[formulas.size()]);
   }
   
-  private double[] getCummMarginalProb(PredicateGroundingIndex predGroundingIdx) {
+  private double[] getCummMarginalProb(PredicateGroundingIndex predGroundingIdx) throws InterruptedException {
     int predicateId = predGroundingIdx.predicateId;
     PredicateDef predicateDef = mln.getPredicateDefs().get(predicateId);
     Set<Integer> predicateVals = predicateDef.getVals().getIds();
     double[] cummMarginalProb = new double[predicateVals.size()];
-    Set<Formula> formulas = affectedFormulas(predGroundingIdx);
+    Formula[] formulas = affectedFormulas(predGroundingIdx);
     
     double Z = 0;
     for(Integer val : predicateVals) {
       state.setGrounding(predGroundingIdx, val);
       double exponent = 0;
-      for(Formula f : formulas) {
+      /*for(Formula f : formulas) {
         exponent += f.getWeight() * f.countSatisfiedGroundingsNoDb(state);
+      }*/
+      long[] satisfiedCounts = SatisfiedGroundingCounter.count(formulas, state, GpuConfig.totalGpus);
+      for(int i = 0; i < formulas.length; i++) {
+        exponent += formulas[i].getWeight() * satisfiedCounts[i];
       }
       cummMarginalProb[val] = Math.exp(exponent);
       Z += cummMarginalProb[val];
@@ -71,7 +76,7 @@ public class GibbsSampler {
     return cummMarginalProb;
   }
   
-  public void generateMarginals() {
+  public void generateMarginals() throws InterruptedException {
     for(int i = 0; i < burnInSamples + totalSamples; i++) {
       PredicateGroundingIndex predGroundingIdx = state.randomlySelectUnknownGrounding();
       double[] cummMarginalProb = getCummMarginalProb(predGroundingIdx);
