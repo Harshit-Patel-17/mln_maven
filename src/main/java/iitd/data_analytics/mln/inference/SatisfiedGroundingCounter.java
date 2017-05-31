@@ -6,29 +6,31 @@ import iitd.data_analytics.mln.mln.State;
 
 import static jcuda.driver.JCudaDriver.*;
 import jcuda.driver.*;
+import jcuda.runtime.JCuda;
 
 public class SatisfiedGroundingCounter {
   
-  public static long[] count(Formula[] formulas, State state, int totalGpus) throws InterruptedException {
+  public static long[] count(Formula[] formulas, State state) throws InterruptedException {
     long[] counts = new long[formulas.length];
+    int totalGpus = Math.min(GpuConfig.totalGpus, formulas.length);
     int formulasPerThread = (int)Math.ceil(1.0 * formulas.length / totalGpus);
     CountingThread[] countingThreads = new CountingThread[totalGpus];
-    Thread[] threads = new Thread[totalGpus];
+    //Thread[] threads = new Thread[totalGpus];
     
     for(int i = 0; i < totalGpus; i++) {
       int startIdx = i * formulasPerThread;
       int endIdx = Math.min((i+1) * formulasPerThread, formulas.length) - 1;
-      countingThreads[i] = new CountingThread(GpuConfig.context[i], state, formulas, startIdx, endIdx);
-      threads[i] = new Thread(countingThreads[i]);
+      countingThreads[i] = new CountingThread(i, state, formulas, startIdx, endIdx);
+      //threads[i] = new Thread(countingThreads[i]);
     }
     
     //Launch threads
-    for(Thread thread : threads) {
+    for(Thread thread : countingThreads) {
       thread.start();
     }
     
     //Join threads
-    for(Thread thread : threads) {
+    for(Thread thread : countingThreads) {
       thread.join();
     }
     
@@ -46,15 +48,15 @@ public class SatisfiedGroundingCounter {
   
 }
 
-class CountingThread implements Runnable{
+class CountingThread extends Thread{
 
-  CUcontext context;
-  private State state;
+  int gpuNo;
+  private iitd.data_analytics.mln.mln.State state;
   private Formula[] formulas;
   private long[] counts;
   
-  public CountingThread(CUcontext _context, State _state, Formula[] _formulas, int startIdx, int endIdx) {
-    context = _context;
+  public CountingThread(int _gpuNo, iitd.data_analytics.mln.mln.State _state, Formula[] _formulas, int startIdx, int endIdx) {
+    gpuNo = _gpuNo;
     state = _state;
     formulas = new Formula[endIdx - startIdx + 1];
     for(int i = startIdx; i <= endIdx; i++) {
@@ -70,14 +72,18 @@ class CountingThread implements Runnable{
   @Override
   public void run() {
     /*CUdevice device = new CUdevice();
-    cuDeviceGet(device, gpuNo);
+    assert cuDeviceGet(device, 1-gpuNo) == CUresult.CUDA_SUCCESS;
     CUcontext context = new CUcontext();
-    cuCtxCreate(context, 0, device);*/
-    cuCtxSetCurrent(context);
+    assert cuCtxCreate(context, 0, device) == CUresult.CUDA_SUCCESS;*/
+    cuCtxSetCurrent(GpuConfig.context[gpuNo]);
+    //cuCtxPushCurrent(GpuConfig.context[2]);
+    //cudaSetDevice(gpuNo);
     
     for(int i = 0; i < formulas.length; i++) {
-      counts[i] = formulas[i].countSatisfiedGroundingsNoDb(state);
+      counts[i] = formulas[i].countSatisfiedGroundingsNoDb(state, gpuNo);
     }
+    
+    /*cuCtxDestroy(context);*/
   }
   
 }

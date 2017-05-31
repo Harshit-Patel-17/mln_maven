@@ -18,6 +18,8 @@ public class InputParams {
   private String queryFile;
   private String evidenceFile;
   private String outputFile;
+  private String ptxFilesPath;
+  private int maxThreads;
   private boolean useGpu;
   
   public InputParams(String xmlFilePath) throws ParserConfigurationException, SAXException, IOException {
@@ -33,7 +35,12 @@ public class InputParams {
     evidenceFile = doc.getElementsByTagName("evidence").item(0).getTextContent();
     outputFile = doc.getElementsByTagName("output").item(0).getTextContent();
     useGpu = (doc.getElementsByTagName("gpu").item(0).getTextContent().equalsIgnoreCase("yes"));
-    GpuConfig.ptxBase = doc.getElementsByTagName("ptxPath").item(0).getTextContent();
+    ptxFilesPath = "";
+    maxThreads = 0;
+    if(useGpu) {
+      ptxFilesPath = doc.getElementsByTagName("ptxPath").item(0).getTextContent();
+      maxThreads = Integer.parseInt(doc.getElementsByTagName("gpuThreads").item(0).getTextContent());
+    }
   }
   
   public String getMlnFile() {
@@ -50,6 +57,14 @@ public class InputParams {
   
   public String getOutputFile() {
     return outputFile;
+  }
+  
+  public String getPtxFilesPath() {
+    return ptxFilesPath;
+  }
+  
+  public int getMaxThreads() {
+    return maxThreads;
   }
   
   public boolean useGpu() {

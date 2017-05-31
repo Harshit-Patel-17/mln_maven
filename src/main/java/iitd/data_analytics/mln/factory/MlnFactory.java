@@ -26,6 +26,7 @@ import iitd.data_analytics.mln.exceptions.MlnParseException;
 import iitd.data_analytics.mln.exceptions.QueryParseException;
 import iitd.data_analytics.mln.gpu.GpuState;
 import iitd.data_analytics.mln.inference.GibbsSampler;
+import iitd.data_analytics.mln.inference.SatisfiedGroundingCounter;
 import iitd.data_analytics.mln.logic.FirstOrderFormula;
 import iitd.data_analytics.mln.mln.Config;
 import iitd.data_analytics.mln.mln.Domain;
@@ -69,10 +70,13 @@ public class MlnFactory {
     State state = mln.getState();
     
     long startTime = System.nanoTime();
-    GibbsSampler gibbsSampler = new GibbsSampler(mln, state, 1000, 10000);
+    GibbsSampler gibbsSampler = new GibbsSampler(mln, state, 1000, 1000);
     gibbsSampler.generateMarginals();
-    state.outputMaxMarginals(inputParams.getOutputFile());
+    /*for(int i = 0; i < 1000; i++) {
+      SatisfiedGroundingCounter.count(mln.getFormulas().toArray(new Formula[mln.getFormulas().size()]), state);
+    }*/
     long endTime = System.nanoTime();
+    state.outputMaxMarginals(inputParams.getOutputFile());
     System.out.println("Time: " + (endTime - startTime)/1e9);
 
     /*long startTime = System.nanoTime();

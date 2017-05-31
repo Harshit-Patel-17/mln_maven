@@ -6,4 +6,5 @@
 	<output>src/test/antlr4/output.txt</output>
 	<gpu>yes</gpu>
 	<ptxPath>src/main/java/iitd/data_analytics/mln/gpu/</ptxPath>
+	<gpuThreads>1024</gpuThreads>
 </input>

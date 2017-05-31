@@ -40,7 +40,7 @@ public class GpuFormula extends Formula {
     }
   }
 
-  @Override
+  /*@Override
   public long countSatisfiedGroundings(State state)
   {
     GpuUtil gpuUtil = new GpuUtil();
@@ -97,8 +97,8 @@ public class GpuFormula extends Formula {
 
       int blockSizeX = Math.min(maxThreads, (int)totalGroundings);
       int gridSizeX = ((int)totalGroundings + blockSizeX - 1) / blockSizeX;
-      /*System.out.println("Grid size: " + gridSizeX + ", Block size: " + blockSizeX + 
-          " :: evalClause");*/
+      System.out.println("Grid size: " + gridSizeX + ", Block size: " + blockSizeX + 
+          " :: evalClause");
 
       cuLaunchKernel(function,
         gridSizeX, 1, 1,
@@ -113,11 +113,11 @@ public class GpuFormula extends Formula {
       cuMemFree(d_valTrue);
     }
 
-    /*int[] satArray = new int[(int)totalGroundings];
+    int[] satArray = new int[(int)totalGroundings];
     assert cuMemcpyDtoH(Pointer.to(satArray), d_satArray, totalGroundings * Sizeof.INT) == 
         CUresult.CUDA_SUCCESS;
 
-    System.out.println(Arrays.toString(satArray));*/
+    System.out.println(Arrays.toString(satArray));
 
     int totalSatGroundings = gpuUtil.parallelSum(d_satArray, totalGroundings, maxThreads);
 
@@ -125,34 +125,37 @@ public class GpuFormula extends Formula {
     cuMemFree(d_interpretation);
 
     return totalSatGroundings;    
-  }
+  }*/
   
   @Override
-  public long countSatisfiedGroundingsNoDb(State state)
+  public long countSatisfiedGroundingsNoDb(State state, int gpuNo)
   {
     GpuUtil gpuUtil = new GpuUtil();
 
-    // Load the ptx file.
+    /*// Load the ptx file.
     CUmodule module = new CUmodule();
     cuModuleLoad(module, GpuConfig.ptxBase + "mlnCudaKernels.ptx");
 
     // Obtain a function pointer to the kernel function
     CUfunction function = new CUfunction();
-    cuModuleGetFunction(function, module, "evalClauseWithoutDbKernel");
+    cuModuleGetFunction(function, module, "evalClauseWithoutDbKernel");*/
+    
+    CUfunction function = new CUfunction();
+    cuModuleGetFunction(function, GpuConfig.mlnCudaKernels[gpuNo], "evalClauseWithoutDbKernel");
 
     CUdeviceptr d_satArray = new CUdeviceptr();
     CUdeviceptr d_interpretation = new CUdeviceptr();
     CUdeviceptr d_mem = new CUdeviceptr();
 
     assert cuMemAlloc(d_satArray, totalGroundings * Sizeof.INT) == CUresult.CUDA_SUCCESS;
-    assert cuMemAlloc(d_interpretation, ((CUdeviceptr[])state.getAllGroundings()).length * 
+    assert cuMemAlloc(d_interpretation, ((CUdeviceptr[])state.getAllGroundings(gpuNo)).length * 
         Sizeof.POINTER) == CUresult.CUDA_SUCCESS;
     assert cuMemAlloc(d_mem, totalVars * totalGroundings * Sizeof.INT) == 
         CUresult.CUDA_SUCCESS;
     
-    gpuUtil.parallelInit(d_satArray, totalGroundings, 1, maxThreads);
-    assert cuMemcpyHtoD(d_interpretation, Pointer.to(((CUdeviceptr[])state.getAllGroundings())), 
-        ((CUdeviceptr[])state.getAllGroundings()).length * Sizeof.POINTER) 
+    gpuUtil.parallelInit(d_satArray, totalGroundings, 1, maxThreads, gpuNo);
+    assert cuMemcpyHtoD(d_interpretation, Pointer.to(((CUdeviceptr[])state.getAllGroundings(gpuNo))), 
+        ((CUdeviceptr[])state.getAllGroundings(gpuNo)).length * Sizeof.POINTER) 
       == CUresult.CUDA_SUCCESS;
 
     for(GpuClause clause : clauses)
@@ -231,7 +234,7 @@ public class GpuFormula extends Formula {
 
     System.out.println(Arrays.toString(satArray));*/
 
-    int totalSatGroundings = gpuUtil.parallelSum(d_satArray, totalGroundings, maxThreads);
+    int totalSatGroundings = gpuUtil.parallelSum(d_satArray, totalGroundings, maxThreads, gpuNo);
 
     cuMemFree(d_satArray);
     cuMemFree(d_interpretation);
@@ -241,7 +244,7 @@ public class GpuFormula extends Formula {
   }
 
   
-  @Override
+  /*@Override
   public long countSatisfiedGroundingsCPU(State state) {
     int[] satArray = new int[(int)totalGroundings];
     for(int i = 0; i < totalGroundings; i++)
@@ -268,7 +271,7 @@ public class GpuFormula extends Formula {
     }
     
     return count;
-  }
+  }*/
   
   @Override
   public long countSatisfiedGroundingsCPUNoDb(State state) {

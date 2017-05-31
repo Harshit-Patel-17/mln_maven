@@ -19,7 +19,7 @@ public abstract class State {
     random = new Random(Config.seed);
   }
   
-  public abstract Object getAllGroundings();
+  public abstract Object getAllGroundings(int gpuNo);
   
   public int getGrounding(int predicateId, int groundIdx) {
     return predicateGroundings[predicateId].getGroundings()[groundIdx];

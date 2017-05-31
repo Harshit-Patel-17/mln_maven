@@ -1,5 +1,6 @@
 package iitd.data_analytics.mln.inference;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -54,9 +55,9 @@ public class GibbsSampler {
       state.setGrounding(predGroundingIdx, val);
       double exponent = 0;
       /*for(Formula f : formulas) {
-        exponent += f.getWeight() * f.countSatisfiedGroundingsNoDb(state);
+        exponent += f.getWeight() * f.countSatisfiedGroundingsCPUNoDb(state);
       }*/
-      long[] satisfiedCounts = SatisfiedGroundingCounter.count(formulas, state, GpuConfig.totalGpus);
+      long[] satisfiedCounts = SatisfiedGroundingCounter.count(formulas, state);
       for(int i = 0; i < formulas.length; i++) {
         exponent += formulas[i].getWeight() * satisfiedCounts[i];
       }

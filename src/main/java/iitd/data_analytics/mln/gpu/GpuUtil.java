@@ -6,20 +6,18 @@ import jcuda.driver.*;
 
 class GpuUtil
 {
-  CUmodule module;
-
   public GpuUtil()
   {
     // Load the ptx file.
-    module = new CUmodule();
-    cuModuleLoad(module, GpuConfig.ptxBase + "utilCudaKernels.ptx");
+    /*module = new CUmodule();
+    cuModuleLoad(module, GpuConfig.ptxBase + "utilCudaKernels.ptx");*/
   }
 
-  public void parallelInit(CUdeviceptr d_A, long size, int val, int maxThreads)
+  public void parallelInit(CUdeviceptr d_A, long size, int val, int maxThreads, int gpuNo)
   {
     // Obtain a function pointer to the kernel function
     CUfunction function = new CUfunction();
-    cuModuleGetFunction(function, module, "initKernel");
+    cuModuleGetFunction(function, GpuConfig.utilCudaKernels[gpuNo], "initKernel");
 
     Pointer kernelParameters = Pointer.to(
       Pointer.to(d_A),
@@ -40,11 +38,11 @@ class GpuUtil
     cuCtxSynchronize();
   }
 
-  public int parallelSum(CUdeviceptr d_A, long size, int maxThreads)
+  public int parallelSum(CUdeviceptr d_A, long size, int maxThreads, int gpuNo)
   {
     // Obtain a function pointer to the kernel function
     CUfunction function = new CUfunction();
-    cuModuleGetFunction(function, module, "sumKernel");
+    cuModuleGetFunction(function, GpuConfig.utilCudaKernels[gpuNo], "sumKernel");
 
     if(size == 0) return 0;
 
@@ -67,7 +65,7 @@ class GpuUtil
       );
       cuCtxSynchronize();
 
-      regularCompact(d_A, size, maxThreads, maxThreads);
+      regularCompact(d_A, size, maxThreads, maxThreads, gpuNo);
       size = gridSizeX;
     }
 
@@ -77,11 +75,11 @@ class GpuUtil
     return ans[0];
   }
 
-  public void regularCompact(CUdeviceptr d_A, long size, int intervalSize, int maxThreads)
+  public void regularCompact(CUdeviceptr d_A, long size, int intervalSize, int maxThreads, int gpuNo)
   {
     // Obtain a function pointer to the kernel function
     CUfunction function = new CUfunction();
-    cuModuleGetFunction(function, module, "regularCompactKernel");
+    cuModuleGetFunction(function, GpuConfig.utilCudaKernels[gpuNo], "regularCompactKernel");
 
     long newSize = (size - 1) / intervalSize + 1;
 
