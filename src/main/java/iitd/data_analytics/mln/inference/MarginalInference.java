@@ -1,0 +1,9 @@
+package iitd.data_analytics.mln.inference;
+
+import iitd.data_analytics.mln.mln.State;
+
+public abstract class MarginalInference {
+
+  public abstract void getMarginals(State state);
+  
+}

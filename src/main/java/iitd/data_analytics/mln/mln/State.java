@@ -78,6 +78,18 @@ public abstract class State {
     }
   }
   
+  public void addQuery(int predicateId, ArrayList<String> symbolicTerms) {
+    PredicateGroundings predGroundings = predicateGroundings[predicateId];
+    predGroundings.addQuery(symbolicTerms);
+  }
+  
+  public void addEvidence(int predicateId, ArrayList<String> symbolicTerms, String symbolicVal) {
+    PredicateGroundings predGroundings = predicateGroundings[predicateId];
+    predGroundings.addEvidence(symbolicTerms, symbolicVal);
+  }
+  
+  public void destroy() {}
+  
   @Override
   public String toString() {
     String str = "";
@@ -99,5 +111,4 @@ public abstract class State {
     }
     writer.close();
   }
-  
 }

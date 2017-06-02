@@ -56,10 +56,35 @@ public class GpuState extends State {
 	    assert cuMemcpyHtoD(updateLocation, Pointer.to(new int[]{val}), Sizeof.INT) == CUresult.CUDA_SUCCESS;
     }
   }
+  
+  @Override
+  public void addEvidence(int predicateId, ArrayList<String> symbolicTerms, String symbolicVal) {
+    super.addEvidence(predicateId, symbolicTerms, symbolicVal);
+    
+    int groundingId = getPredicateGroundings(predicateId).getGroundingIdx(symbolicTerms);
+    int val = getPredicateGroundings(predicateId).getPredicateDef().getVals().getIdFromSymbol(symbolicVal);
+    for(int i = 0; i < GpuConfig.totalGpus; i++) {
+      cuCtxSetCurrent(GpuConfig.context[i]);
+      CUdeviceptr updateLocation = allGroundings[i][predicateId].withByteOffset(groundingId * Sizeof.INT);
+      assert cuMemcpyHtoD(updateLocation, Pointer.to(new int[]{val}), Sizeof.INT) == CUresult.CUDA_SUCCESS;
+    }
+  }
 
   @Override
   public Object getAllGroundings(int gpuNo) {
     return allGroundings[gpuNo];
+  }
+  
+  @Override
+  public void destroy() {
+    super.destroy();
+    
+    for(int gpuNo = 0; gpuNo < GpuConfig.totalGpus; gpuNo++) {
+      cuCtxSetCurrent(GpuConfig.context[gpuNo]);
+      for(int predicateId = 0; predicateId < totalPredicates; predicateId++) {
+        cuMemFree(allGroundings[gpuNo][predicateId]);
+      }
+    }
   }
   
   @Override

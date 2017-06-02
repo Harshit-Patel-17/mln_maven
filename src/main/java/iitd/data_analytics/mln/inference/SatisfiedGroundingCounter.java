@@ -10,7 +10,7 @@ import jcuda.runtime.JCuda;
 
 public class SatisfiedGroundingCounter {
   
-  public static long[] count(Formula[] formulas, State state) throws InterruptedException {
+  public static long[] count(Formula[] formulas, State state) {
     long[] counts = new long[formulas.length];
     int totalGpus = Math.min(GpuConfig.totalGpus, formulas.length);
     int formulasPerThread = (int)Math.ceil(1.0 * formulas.length / totalGpus);
@@ -31,7 +31,13 @@ public class SatisfiedGroundingCounter {
     
     //Join threads
     for(Thread thread : countingThreads) {
-      thread.join();
+      try {
+        thread.join();
+      } catch (InterruptedException e) {
+        System.out.println("Error in joining threads");
+        e.printStackTrace();
+        System.exit(1);
+      }
     }
     
     //Accumulate results

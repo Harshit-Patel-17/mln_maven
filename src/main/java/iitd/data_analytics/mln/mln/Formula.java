@@ -45,6 +45,10 @@ public abstract class Formula {
     return weight;
   }
   
+  public void setWeight(double _weight) {
+    weight = _weight;
+  }
+  
   public ArrayList<ArrayList<Predicate>> getClauses() {
     return clauses;
   }

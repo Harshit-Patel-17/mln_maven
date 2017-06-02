@@ -19,14 +19,22 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+import database_parser.DatabaseLexer;
+import database_parser.DatabaseParser;
+import database_parser.DatabaseParser.DatabaseContext;
 import evidence_parser.EvidenceLexer;
 import evidence_parser.EvidenceParser;
 import evidence_parser.EvidenceParser.EvidenceContext;
+import iitd.data_analytics.mln.exceptions.DatabaseParseException;
+import iitd.data_analytics.mln.exceptions.EvidenceParseException;
 import iitd.data_analytics.mln.exceptions.MlnParseException;
 import iitd.data_analytics.mln.exceptions.QueryParseException;
 import iitd.data_analytics.mln.gpu.GpuState;
-import iitd.data_analytics.mln.inference.GibbsSampler;
+import iitd.data_analytics.mln.inference.SamplingMarginalInference;
+import iitd.data_analytics.mln.inference.MarginalInference;
 import iitd.data_analytics.mln.inference.SatisfiedGroundingCounter;
+import iitd.data_analytics.mln.learning.Learning;
+import iitd.data_analytics.mln.learning.PerWeightLearningRatesLearning;
 import iitd.data_analytics.mln.logic.FirstOrderFormula;
 import iitd.data_analytics.mln.mln.Config;
 import iitd.data_analytics.mln.mln.Domain;
@@ -38,6 +46,7 @@ import iitd.data_analytics.mln.mln.PredicateDef;
 import iitd.data_analytics.mln.mln.PredicateGroundingIndex;
 import iitd.data_analytics.mln.mln.State;
 import iitd.data_analytics.mln.mln.Symbols;
+import iitd.data_analytics.mln.sampler.GibbsSampler;
 import mln_parser.*;
 import mln_parser.MlnParser.Domain1Context;
 import mln_parser.MlnParser.Domain2Context;
@@ -60,18 +69,31 @@ import query_parser.QueryParser.QueryContext;
 
 public class MlnFactory {
   
-  public Mln createMln(InputParams inputParams) throws MlnParseException, IOException, InterruptedException, QueryParseException {
+  public Mln createMln(InputParams inputParams) throws MlnParseException, IOException, InterruptedException, QueryParseException, EvidenceParseException, DatabaseParseException {
     
     Mln mln = parseMlnFile(inputParams.getMlnFile());
-    mln.addState(new GpuState(mln.getPredicateDefs()));
+    mln.addStateWithEvidenceAndQuery(new GpuState(mln.getPredicateDefs()));
+    mln.addDatabase(new GpuState(mln.getPredicateDefs()));
     parseQueryFile(inputParams.getQueryFile(), mln);
     parseEvidenceFile(inputParams.getEvidenceFile(), mln);
+    if(inputParams.doLearning()) {
+      parseDatabaseFile(inputParams.getDatabaseFile(), mln);
+    }
+
+    /*System.out.println(mln.getDataBase());
+    System.out.println(mln.getStateWithEvidenceAndQuery());
+    System.out.println(Arrays.toString(SatisfiedGroundingCounter.count(mln.getFormulas().toArray(new Formula[mln.getFormulas().size()]), mln.getDataBase())));
+    System.out.println(Arrays.toString(SatisfiedGroundingCounter.count(mln.getFormulas().toArray(new Formula[mln.getFormulas().size()]), mln.getStateWithEvidenceAndQuery())));*/
     
-    State state = mln.getState();
+    State state = mln.getStateWithEvidenceAndQuery();
+    state.resetMarginalCounts();
     
     long startTime = System.nanoTime();
-    GibbsSampler gibbsSampler = new GibbsSampler(mln, state, 1000, 1000);
-    gibbsSampler.generateMarginals();
+    /*GibbsSampler gibbsSampler = new GibbsSampler(mln, 1000);
+    MarginalInference marginalInference = new SamplingMarginalInference(50000, gibbsSampler);
+    marginalInference.getMarginals(state);*/
+    Learning learning = new PerWeightLearningRatesLearning(1e-1, 1000, 1e-10);
+    learning.learn(mln);
     /*for(int i = 0; i < 1000; i++) {
       SatisfiedGroundingCounter.count(mln.getFormulas().toArray(new Formula[mln.getFormulas().size()]), state);
     }*/
@@ -146,7 +168,7 @@ public class MlnFactory {
       public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, 
           int charPositionInLine, String msg, RecognitionException e) {
         String position = line + ":" + charPositionInLine;
-        throw new IllegalStateException("failed to parse at line " + position + " " + msg);
+        throw new IllegalStateException("failed to parse in Mln file at line " + position + " " + msg);
       }
       
     });
@@ -176,7 +198,7 @@ public class MlnFactory {
     //Parse file
     QueryContext queryContext = p.query();
     if(p.getNumberOfSyntaxErrors() != 0)
-      throw new QueryParseException("Error in parsing MLN file");
+      throw new QueryParseException("Error in parsing Query file");
     
     //File successfully parsed. Remove default error listener
     //Add custom error listener to throw exceptions on parsing errors
@@ -185,7 +207,7 @@ public class MlnFactory {
       public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, 
           int charPositionInLine, String msg, RecognitionException e) {
         String position = line + ":" + charPositionInLine;
-        throw new IllegalStateException("failed to parse at line " + position + " " + msg);
+        throw new IllegalStateException("failed to parse in Query file at line " + position + " " + msg);
       }
       
     });
@@ -199,7 +221,7 @@ public class MlnFactory {
     walker.walk(listener, queryContext);
   }
   
-  private void parseEvidenceFile(String evidenceFile, Mln mln) throws IOException, QueryParseException {
+  private void parseEvidenceFile(String evidenceFile, Mln mln) throws IOException, EvidenceParseException {
     //Create input stream
     File f = new File(evidenceFile);
     InputStream in = new FileInputStream(f);
@@ -213,7 +235,7 @@ public class MlnFactory {
     //Parse file
     EvidenceContext evidenceContext = p.evidence();
     if(p.getNumberOfSyntaxErrors() != 0)
-      throw new QueryParseException("Error in parsing MLN file");
+      throw new EvidenceParseException("Error in parsing Evidence file");
     
     //File successfully parsed. Remove default error listener
     //Add custom error listener to throw exceptions on parsing errors
@@ -222,7 +244,7 @@ public class MlnFactory {
       public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, 
           int charPositionInLine, String msg, RecognitionException e) {
         String position = line + ":" + charPositionInLine;
-        throw new IllegalStateException("failed to parse at line " + position + " " + msg);
+        throw new IllegalStateException("failed to parse in Evidence file at line " + position + " " + msg);
       }
       
     });
@@ -234,5 +256,42 @@ public class MlnFactory {
     
     //Walk parse tree
     walker.walk(listener, evidenceContext);
+  }
+  
+  private void parseDatabaseFile(String databaseFile, Mln mln) throws IOException, QueryParseException, DatabaseParseException {
+    //Create input stream
+    File f = new File(databaseFile);
+    InputStream in = new FileInputStream(f);
+    
+    //Create MLN lexer object
+    DatabaseLexer l = new DatabaseLexer(CharStreams.fromStream(in));
+    
+    //Create MLN parser object
+    DatabaseParser p = new DatabaseParser(new CommonTokenStream(l));
+    
+    //Parse file
+    DatabaseContext databaseContext = p.database();
+    if(p.getNumberOfSyntaxErrors() != 0)
+      throw new DatabaseParseException("Error in parsing Database file");
+    
+    //File successfully parsed. Remove default error listener
+    //Add custom error listener to throw exceptions on parsing errors
+    p.removeErrorListeners();
+    p.addErrorListener(new BaseErrorListener() {
+      public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, 
+          int charPositionInLine, String msg, RecognitionException e) {
+        String position = line + ":" + charPositionInLine;
+        throw new IllegalStateException("failed to parse in Database file at line " + position + " " + msg);
+      }
+      
+    });
+    
+    //Add event listener for syntax directed definition. 
+    //Refer to Mln.g4 to understand the class MyMlnBaseListener
+    ParseTreeWalker walker = new ParseTreeWalker();
+    MyDatabaseBaseListener listener = new MyDatabaseBaseListener(p, mln);
+    
+    //Walk parse tree
+    walker.walk(listener, databaseContext);
   }
 }

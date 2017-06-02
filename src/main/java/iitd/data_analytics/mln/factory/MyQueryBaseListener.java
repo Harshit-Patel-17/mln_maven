@@ -67,26 +67,26 @@ public class MyQueryBaseListener extends QueryBaseListener {
   
   private void addQueryAtoms(String predicateName, ArrayList<String> terms, ArrayList<Domain> domains) {
     int predicateId = mln.getPredicateSymbols().getIdFromSymbol(predicateName);
-    PredicateGroundings predGroundings = mln.getState().getPredicateGroundings(predicateId);
+    //PredicateGroundings predGroundings = mln.getStateWithEvidenceAndQuery().getPredicateGroundings(predicateId);
     ArrayList<String> container = new ArrayList<String>(Arrays.asList(new String[terms.size()]));
-    addQueryAtomsRec(predGroundings, terms, domains, 0, container);
+    addQueryAtomsRec(predicateId, terms, domains, 0, container);
   }
   
-  private void addQueryAtomsRec(PredicateGroundings predGroundings, ArrayList<String> terms,
+  private void addQueryAtomsRec(int predicateId, ArrayList<String> terms,
       ArrayList<Domain> domains, int currentIdx, ArrayList<String> currentTerms) {
     if(currentIdx == terms.size()) {
-      predGroundings.addQuery(currentTerms);
+      mln.getStateWithEvidenceAndQuery().addQuery(predicateId, currentTerms);
       return;
     }
     if(terms.get(currentIdx).equalsIgnoreCase("*")) {
       Set<String> symbols = domains.get(currentIdx).getVals().getSymbols();
       for(String symbol : symbols) {
         currentTerms.set(currentIdx, symbol);
-        addQueryAtomsRec(predGroundings, terms, domains, currentIdx+1, currentTerms);
+        addQueryAtomsRec(predicateId, terms, domains, currentIdx+1, currentTerms);
       }
     } else {
       currentTerms.set(currentIdx, terms.get(currentIdx));
-      addQueryAtomsRec(predGroundings, terms, domains, currentIdx+1, currentTerms);
+      addQueryAtomsRec(predicateId, terms, domains, currentIdx+1, currentTerms);
     }
   }
 }

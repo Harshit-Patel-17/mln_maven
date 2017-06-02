@@ -51,6 +51,10 @@ public class PredicateGroundings {
       return predicateDef.getPredicateId();
     }
     
+    public PredicateDef getPredicateDef() {
+      return predicateDef;
+    }
+    
     public ArrayList<Integer> getUnknownGroundings() {
       return unknownGroundings;
     }

@@ -25,7 +25,8 @@ public class Mln {
   private ArrayList<Formula> formulas;
   //Contains first order formulas.
   
-  private State state;
+  private State state; //With evidence and query
+  private State database; //For learning
   
   public Mln() {
     domainSymbols = new Symbols();
@@ -121,12 +122,20 @@ public class Mln {
     formulas.add(new GpuFormula(formulaId, foFormula, varsDomain, varsId, weight));
   }
   
-  public void addState(State _state) {
+  public void addStateWithEvidenceAndQuery(State _state) {
     state = _state;
   }
   
-  public State getState() {
+  public void addDatabase(State _database) {
+    database = _database;
+  }
+  
+  public State getStateWithEvidenceAndQuery() {
     return state;
+  }
+  
+  public State getDataBase() {
+    return database;
   }
   
   //Display on stdout
