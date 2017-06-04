@@ -1,0 +1,8 @@
+#domains
+Flip = {1,...,20}
+
+#predicates
+Heads(Flip) = {0,1}
+
+#formulas
+1::Heads(f) = 1

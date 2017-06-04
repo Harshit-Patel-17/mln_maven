@@ -79,7 +79,6 @@ public class MyMlnBaseListener extends MlnBaseListener{
   @Override
   public void exitPredicateDef3(PredicateDef3Context ctx) {
     super.exitPredicateDef3(ctx);
-    //TODO: Handle this case
     checkForRedeclaration(ctx.predicateName3.getText());
     mln.addPredicate(ctx.predicateName3.getText(), parseList(ctx.doms3.getText()),
         ctx.vals3.getText());
@@ -193,6 +192,10 @@ public class MyMlnBaseListener extends MlnBaseListener{
   
   private Predicate validateAndCreatePredicate(String predicateName,
       ArrayList<String> terms, String val) {
+    if(!mln.getPredicateSymbols().exist(predicateName)) {
+      String msg = "Declaration of predicate " + predicateName + " not found.";
+      p.notifyErrorListeners(msg);
+    }
     PredicateDef predicateDef = mln.getPredicateDefByName(predicateName);
     ArrayList<Boolean> isVariable = new ArrayList<Boolean>();
     for(String term : terms) {

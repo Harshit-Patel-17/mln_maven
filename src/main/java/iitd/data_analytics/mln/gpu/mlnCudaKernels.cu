@@ -49,7 +49,7 @@ __global__ void evalClauseKernel(int *d_satArray, int **d_interpretation, int *d
 
 extern "C"
 __global__ void evalClauseWithoutDbKernel(int totalVars, int totalPreds, int *d_varDomainSizes,
-                                  int *d_predicates, int *d_predBaseIdx, int *d_valTrue, int *d_predVarMat, 
+                                  int *d_predicates, int *d_negated, int *d_predBaseIdx, int *d_valTrue, int *d_predVarMat, 
 								  int *d_satArray, int **d_interpretation, long totalGroundings, int *d_mem)
 {
   long idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -71,10 +71,14 @@ __global__ void evalClauseWithoutDbKernel(int totalVars, int totalPreds, int *d_
 		for(int i = 0; i < totalPreds; i++)
 		{
 			int predId = d_predicates[i];
+			int negated = d_negated[i];
 			int dbIndex = d_predBaseIdx[i];
 			for(int j = 0; j < totalVars; j++)
 				dbIndex += d_mem[memBase + j] * d_predVarMat[j * totalPreds + i];
-			sat = max(sat, d_interpretation[predId][dbIndex] == d_valTrue[i]);
+			if(negated == 0)
+				sat = max(sat, d_interpretation[predId][dbIndex] == d_valTrue[i]);
+			else
+				sat = max(sat, d_interpretation[predId][dbIndex] != d_valTrue[i]);
 		}
 		d_satArray[idx] = sat;
     }

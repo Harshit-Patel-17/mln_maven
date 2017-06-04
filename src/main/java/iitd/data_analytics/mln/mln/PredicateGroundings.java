@@ -135,6 +135,21 @@ public class PredicateGroundings {
       return idx;
     }
     
+    public void outputMarginals(PrintWriter writer) {
+      for(int i = 0; i < totalGroundings; i++) {
+        if(isQuery[i]) {
+          double Z = 0;
+          for(int j = 0; j < distinctVals; j++) {
+            int count = marginalCount[i][j];
+            Z += count;
+          }
+          for(int j = 0; j < distinctVals; j++) {
+            printGroundPredicate(i, marginalCount[i][j] / Z, j, writer);
+          }
+        }
+      }
+    }
+    
     public void outputMaxMarginals(PrintWriter writer) {
       for(int i = 0; i < totalGroundings; i++) {
         if(isQuery[i]) {

@@ -162,6 +162,7 @@ public class GpuFormula extends Formula {
     { 
       //CUdeviceptr d_dbIndex = new CUdeviceptr();
       CUdeviceptr d_predicates = new CUdeviceptr();
+      CUdeviceptr d_negated = new CUdeviceptr();
       CUdeviceptr d_valTrue = new CUdeviceptr();
       CUdeviceptr d_varDomainSizes = new CUdeviceptr();
       CUdeviceptr d_predBaseIdx = new CUdeviceptr();
@@ -170,6 +171,8 @@ public class GpuFormula extends Formula {
       /*assert cuMemAlloc(d_dbIndex, clause.dbIndex.length * Sizeof.INT) == 
           CUresult.CUDA_SUCCESS;*/
       assert cuMemAlloc(d_predicates, clause.predicates.length * Sizeof.INT) == 
+          CUresult.CUDA_SUCCESS;
+      assert cuMemAlloc(d_negated, clause.isNegated.length * Sizeof.INT) == 
           CUresult.CUDA_SUCCESS;
       assert cuMemAlloc(d_valTrue, clause.valTrue.length * Sizeof.INT) == 
           CUresult.CUDA_SUCCESS;
@@ -184,6 +187,8 @@ public class GpuFormula extends Formula {
           clause.dbIndex.length * Sizeof.INT) == CUresult.CUDA_SUCCESS;*/
       assert cuMemcpyHtoD(d_predicates, Pointer.to(clause.predicates), 
           clause.predicates.length * Sizeof.INT) == CUresult.CUDA_SUCCESS;
+      assert cuMemcpyHtoD(d_negated, Pointer.to(clause.isNegated), 
+          clause.isNegated.length * Sizeof.INT) == CUresult.CUDA_SUCCESS;
       assert cuMemcpyHtoD(d_valTrue, Pointer.to(clause.valTrue), 
           clause.valTrue.length * Sizeof.INT) == CUresult.CUDA_SUCCESS;
       assert cuMemcpyHtoD(d_varDomainSizes, Pointer.to(varDomainSizes), 
@@ -198,6 +203,7 @@ public class GpuFormula extends Formula {
         Pointer.to(new int[]{clause.totalPreds}),
         Pointer.to(d_varDomainSizes),
         Pointer.to(d_predicates),
+        Pointer.to(d_negated),
         Pointer.to(d_predBaseIdx),
         Pointer.to(d_valTrue),
         Pointer.to(d_predVarMat),
@@ -222,6 +228,7 @@ public class GpuFormula extends Formula {
 
       //cuMemFree(d_dbIndex);
       cuMemFree(d_predicates);
+      cuMemFree(d_negated);
       cuMemFree(d_valTrue);
       cuMemFree(d_varDomainSizes);
       cuMemFree(d_predBaseIdx);
@@ -304,7 +311,10 @@ public class GpuFormula extends Formula {
           for(int j = 0; j < clause.totalPreds; j++) {
             int trueVal = clause.valTrue[j];
             int stateVal = state.getGrounding(clause.predicates[j], dbIndex[j]);
-            sat = Math.max(sat, (trueVal == stateVal)?1:0);
+            if(clause.isNegated[j] == 0)
+              sat = Math.max(sat, (trueVal == stateVal)?1:0);
+            else
+              sat = Math.max(sat, (trueVal != stateVal)?1:0);
           }
           satArray[i] = sat;
         }

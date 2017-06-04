@@ -88,6 +88,7 @@ public class GibbsSampler extends Sampler {
   public void getNextSample(State state) {
     burnIn(state);
     PredicateGroundingIndex predGroundingIdx = state.randomlySelectUnknownGrounding();
+    //PredicateGroundingIndex predGroundingIdx = state.getNextUnknownGrounding();
     double[] cummMarginalProb;
     cummMarginalProb = getCummMarginalProb(predGroundingIdx, state);
     double p = Math.random();

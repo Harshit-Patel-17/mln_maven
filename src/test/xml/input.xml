@@ -1,12 +1,13 @@
 <?xml version="1.0"?>
 <input>
-	<mln>src/test/antlr4/mln.txt</mln>
-	<query>src/test/antlr4/query.txt</query>
-	<evidence>src/test/antlr4/evidence.txt</evidence>
-	<database>src/test/antlr4/database.txt</database>
-	<output>src/test/antlr4/output.txt</output>
+	<mln>src/test/antlr4/uniform.mln</mln>
+	<query>src/test/antlr4/uniform.ne</query>
+	<evidence>src/test/antlr4/uniform.e</evidence>
+	<database>src/test/antlr4/uniform.db</database>
+	<output>src/test/antlr4/uniform.output</output>
 	<gpu>yes</gpu>
 	<ptxPath>src/main/java/iitd/data_analytics/mln/gpu/</ptxPath>
 	<gpuThreads>1024</gpuThreads>
 	<learn>yes</learn>
+	<infer>yes</infer>
 </input>

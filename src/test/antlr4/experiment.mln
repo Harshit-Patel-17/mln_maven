@@ -1,0 +1,39 @@
+#domains
+//Dom1 = {1,...,5}
+//Dom2 = {1,...,5}
+//Dom1 = {1,...,1000}
+//Dom2 = {1,...,10000}
+//Dom2 = {1,...,100}
+//Dom3 = {1,...,100}
+//Flip = {1,...,20}
+Throw = {1,...,20}
+Face = {1,...,6}
+
+#predicates
+//R(Dom1, Dom1) = {0,1}
+//P(Dom1) = {0,1}
+//Q(Dom2) = {0,1}
+//R(Dom1, Dom3) = {0,1}
+//Heads(Flip) = {0,1}
+//Tails(Flip) = {0,1}
+Outcome(Throw) = Face
+
+#formulas
+//1::P(x) = 0 ^ Q(y) = 1 ^ R(x, z) = 0
+//0.09::(!P(x) = 0 v Q(y) = 0 v R(x, z) = 1) ^ (P(x) = 0 v Q(y) = 0 v R(x, z) = 1)
+//1e-5::Heads(f) = 1 ^ Tails(f) = 1
+//1e-5::Tails(f) = 1 v Heads(f) = 1
+//0::Heads(f) = 1
+//0::Tails(f) = 1
+//0.5::Heads(x) = 1 ^ Tails(y) = 1
+//0.5::Heads(x) = 1 v Tails(y) = 1
+//1e-6::Heads(x) = 1 => Tails(y) = 1
+//1e-6::Heads(x) = 1 <=> Tails(y) = 1
+//1e-6::!Heads(x) = 1 <=> Tails(y) = 1
+//1e-6::Heads(x) = 1 <=> !Tails(y) = 1
+2.7::Outcome(t) = 1
+-1.3::Outcome(t) = 2
+-1.3::Outcome(t) = 3
+-1.3::Outcome(t) = 4
+-1.3::Outcome(t) = 5
+2.7::Outcome(t) = 6

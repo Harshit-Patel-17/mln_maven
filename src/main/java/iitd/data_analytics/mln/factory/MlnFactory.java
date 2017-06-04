@@ -76,68 +76,25 @@ public class MlnFactory {
     mln.addDatabase(new GpuState(mln.getPredicateDefs()));
     parseQueryFile(inputParams.getQueryFile(), mln);
     parseEvidenceFile(inputParams.getEvidenceFile(), mln);
-    if(inputParams.doLearning()) {
-      parseDatabaseFile(inputParams.getDatabaseFile(), mln);
-    }
-
-    /*System.out.println(mln.getDataBase());
-    System.out.println(mln.getStateWithEvidenceAndQuery());
-    System.out.println(Arrays.toString(SatisfiedGroundingCounter.count(mln.getFormulas().toArray(new Formula[mln.getFormulas().size()]), mln.getDataBase())));
-    System.out.println(Arrays.toString(SatisfiedGroundingCounter.count(mln.getFormulas().toArray(new Formula[mln.getFormulas().size()]), mln.getStateWithEvidenceAndQuery())));*/
     
     State state = mln.getStateWithEvidenceAndQuery();
     state.resetMarginalCounts();
     
     long startTime = System.nanoTime();
-    /*GibbsSampler gibbsSampler = new GibbsSampler(mln, 1000);
-    MarginalInference marginalInference = new SamplingMarginalInference(50000, gibbsSampler);
-    marginalInference.getMarginals(state);*/
-    Learning learning = new PerWeightLearningRatesLearning(1e-1, 1000, 1e-10);
-    learning.learn(mln);
-    /*for(int i = 0; i < 1000; i++) {
-      SatisfiedGroundingCounter.count(mln.getFormulas().toArray(new Formula[mln.getFormulas().size()]), state);
-    }*/
-    long endTime = System.nanoTime();
-    state.outputMaxMarginals(inputParams.getOutputFile());
-    System.out.println("Time: " + (endTime - startTime)/1e9);
-
-    /*long startTime = System.nanoTime();
-    if(inputParams.useGpu()) {
-      for(int i = 0; i < 1; i++) {
-        //System.out.println("GPU: " + mln.getFormulas().get(0).countSatisfiedGroundings(state));
-        System.out.println("GPU NoDb: " + mln.getFormulas().get(0).countSatisfiedGroundingsNoDb(state));
-      }
-    } else {
-      for(int i = 0; i < 1; i++) {
-        //System.out.println("CPU: " + mln.getFormulas().get(0).countSatisfiedGroundingsCPU(state));
-        System.out.println("CPU NoDb: " + mln.getFormulas().get(0).countSatisfiedGroundingsCPUNoDb(state));
-      }
+    if(inputParams.doLearning()) {
+      parseDatabaseFile(inputParams.getDatabaseFile(), mln);
+      Learning learning = new PerWeightLearningRatesLearning(1e-1, 15, 1e-5);
+      learning.learn(mln);
+    }
+    if(inputParams.doInference()) {
+      GibbsSampler gibbsSampler = new GibbsSampler(mln, 1000);
+      MarginalInference marginalInference = new SamplingMarginalInference(10000, gibbsSampler);
+      marginalInference.getMarginals(state);
+      //state.outputMaxMarginals(inputParams.getOutputFile());
+      state.outputMarginals(inputParams.getOutputFile());
     }
     long endTime = System.nanoTime();
-    System.out.println("Time: " + (endTime - startTime)/1e9);*/
-    /*state.display();
-    System.out.println(mln.getFormulas().get(0).countSatisfiedGroundings(state));
-    System.out.println(mln.getFormulas().get(1).countSatisfiedGroundings(state));
-    System.out.println(mln.getFormulas().get(2).countSatisfiedGroundings(state));
-    System.out.println(mln.getFormulas().get(0).countSatisfiedGroundingsCPU(state));
-    System.out.println(mln.getFormulas().get(1).countSatisfiedGroundingsCPU(state));
-    System.out.println(mln.getFormulas().get(2).countSatisfiedGroundingsCPU(state));*/
-    
-    /*for(int i = 0; i < 10; i++) {
-      PredicateGroundingIndex predicateGroundingIndex = state.randomlySelectUnknownGrounding();
-      Random random = new Random(Config.seed);
-      int vals = mln.getPredicateDefs().get(predicateGroundingIndex.predicateId).getVals().size();
-      state.setGrounding(predicateGroundingIndex, random.nextInt(vals));
-      System.out.println("GPU NoDb: " + mln.getFormulas().get(0).countSatisfiedGroundingsNoDb(state));
-      System.out.println("CPU NoDb: " + mln.getFormulas().get(0).countSatisfiedGroundingsCPUNoDb(state));
-      System.out.println("");
-    }*/
-
-    /*GibbsSampler gibbsSampler = new GibbsSampler(mln, mln.getState(), 1000, 1000);
-    PredicateGroundingIndex predGroundingIdx = new PredicateGroundingIndex();
-    predGroundingIdx.predicateId = 2;
-    predGroundingIdx.groundingId = 17;
-    gibbsSampler.affectedFormulas(predGroundingIdx);*/
+    System.out.println("Time: " + (endTime - startTime)/1e9);
     
     return mln;
   }

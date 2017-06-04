@@ -1,5 +1,6 @@
 package iitd.data_analytics.mln.learning;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -52,22 +53,25 @@ public class PerWeightLearningRatesLearning extends Learning {
         expectedSatCounts[j] /= totalSamples;
       }
       
+      System.out.println(Arrays.toString(satCountsDb));
       System.out.println(Arrays.toString(expectedSatCounts));
       for(int j = 0; j < formulas.length; j++) {
-        double diff = satCountsDb[j] - expectedSatCounts[j];
-        maxWeightChange = Math.max(maxWeightChange, Math.abs(diff));
         double new_alpha = satCountsDb[j] == 0 ? alpha : alpha / satCountsDb[j];
-        double new_weight = formulas[j].getWeight() + alpha * diff;
+        //double diff = new_alpha / Math.sqrt(i+1) * (satCountsDb[j] - expectedSatCounts[j]);
+        double diff = alpha * (satCountsDb[j] - expectedSatCounts[j]);
+        maxWeightChange = Math.max(maxWeightChange, Math.abs(diff));
+        double new_weight = formulas[j].getWeight() + diff;
         formulas[j].setWeight(new_weight);
       }
       
       System.out.println("Iteration:" + i + " MaxChange:" + maxWeightChange);
+      DecimalFormat df = new DecimalFormat("#.####");
       for(Formula formula : formulas) {
-        System.out.println(formula.getWeight());
+        System.out.println(df.format(formula.getWeight()));
       }
       
       if(maxWeightChange < eta) {
-        //break;
+        break;
       }
     }
   }

@@ -8,15 +8,24 @@ import java.util.Random;
 public abstract class State {
 
   private PredicateGroundings[] predicateGroundings;
+  private PredicateGroundingIndex currentUnknownGrounding; //Useful for GibbsSampling
   private Random random;
   
   public State(ArrayList<PredicateDef> predicateDefs) {
     predicateGroundings = new PredicateGroundings[predicateDefs.size()];
     for(PredicateDef predicateDef : predicateDefs) {
-      predicateGroundings[predicateDef.getPredicateId()] = 
-          new PredicateGroundings(predicateDef);
+      predicateGroundings[predicateDef.getPredicateId()] = new PredicateGroundings(predicateDef);
     }
     random = new Random(Config.seed);
+    currentUnknownGrounding = new PredicateGroundingIndex();
+    for(int i = 0; i < predicateGroundings.length; i++) {
+      if(predicateGroundings[i].getUnknownGroundings().size() != 0) {
+        currentUnknownGrounding.predicateId = predicateGroundings[i].getPredicateDef().getPredicateId();
+        currentUnknownGrounding.groundingId = 0; 
+        break;
+        //It is not the actual groundId but the index of groundId in array of unknown groundings
+      }
+    }
   }
   
   public abstract Object getAllGroundings(int gpuNo);
@@ -33,6 +42,34 @@ public abstract class State {
   public PredicateGroundings getPredicateGroundings(int predicateId) {
     assert (predicateId >= 0) && (predicateId < predicateGroundings.length);
     return predicateGroundings[predicateId];
+  }
+  
+  public PredicateGroundingIndex getNextUnknownGrounding() {
+    PredicateGroundingIndex predGroundingIdx = new PredicateGroundingIndex();
+    int predicateId = currentUnknownGrounding.predicateId;
+    int groundingId = currentUnknownGrounding.groundingId;
+    
+    predGroundingIdx.predicateId = predicateId;
+    predGroundingIdx.groundingId = predicateGroundings[predicateId].getUnknownGroundings().get(groundingId);
+    
+    //Update currentUnknownGrounding 
+    if(predicateGroundings[predicateId].getUnknownGroundings().size() == groundingId + 1) {
+      //Next grounding belongs to some other predicate
+      int totalPreds = predicateGroundings.length;
+      for(int i = (predicateId + 1) % totalPreds; i != predicateId; i = (i+1) % totalPreds) {
+        if(predicateGroundings[i].getUnknownGroundings().size() != 0) {
+          currentUnknownGrounding.predicateId = i;
+          break;
+        }
+        //It is not the actual groundId but the index of groundId in array of unknown groundings
+      }
+      currentUnknownGrounding.groundingId = 0;
+    } else {
+      currentUnknownGrounding.groundingId += 1;
+      //It is not the actual groundId but the index of groundId in array of unknown groundings
+    }
+    
+    return predGroundingIdx;
   }
   
   public PredicateGroundingIndex randomlySelectUnknownGrounding() {
@@ -102,6 +139,14 @@ public abstract class State {
   
   public void display() {
     System.out.print(this);
+  }
+  
+  public void outputMarginals(String outputFile) throws FileNotFoundException {
+    PrintWriter writer = new PrintWriter(outputFile);
+    for(PredicateGroundings predGroundings : predicateGroundings) {
+      predGroundings.outputMarginals(writer);
+    }
+    writer.close();
   }
   
   public void outputMaxMarginals(String outputFile) throws FileNotFoundException {

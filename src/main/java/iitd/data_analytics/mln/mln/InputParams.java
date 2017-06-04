@@ -23,6 +23,7 @@ public class InputParams {
   private int maxThreads;
   private boolean useGpu;
   private boolean learn;
+  private boolean infer;
   
   public InputParams(String xmlFilePath) throws ParserConfigurationException, SAXException, IOException {
     File xmlFile = new File(xmlFilePath);
@@ -47,6 +48,7 @@ public class InputParams {
     if(learn) {
       databaseFile = doc.getElementsByTagName("database").item(0).getTextContent();
     }
+    infer = (doc.getElementsByTagName("infer").item(0).getTextContent().equalsIgnoreCase("yes"));
   }
   
   public String getMlnFile() {
@@ -83,5 +85,9 @@ public class InputParams {
   
   public boolean doLearning() {
     return learn;
+  }
+  
+  public boolean doInference() {
+    return infer;
   }
 }
