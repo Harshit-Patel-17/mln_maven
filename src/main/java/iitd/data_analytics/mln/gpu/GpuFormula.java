@@ -39,6 +39,25 @@ public class GpuFormula extends Formula {
       clauses.add(new GpuClause(clause, totalVars, totalGroundings, varDomainSizes));
     }
   }
+  
+  @Override
+  public void setTotalGroundings() {
+    super.setTotalGroundings();
+    Map<String,Domain> varsDomain = super.getVarsDomain();
+    Symbols varsId = super.getVarsId();
+    totalGroundings = 1;
+    for(int i = 0; i < totalVars; i++) {
+      String varSymbol = varsId.getSymbolFromId(i);
+      int domainSize = varsDomain.get(varSymbol).size();
+      varDomainSizes[i] = domainSize;
+      totalGroundings *= domainSize;
+    }
+  }
+  
+  @Override
+  public long getTotalGroundings() {
+    return super.getTotalGroundings();
+  }
 
   /*@Override
   public long countSatisfiedGroundings(State state)

@@ -1,5 +1,5 @@
 #domains
-Throw = {1,...,20}
+Throw = {11,...,15}
 Face = {1,...,6}
 
 #predicates

@@ -24,6 +24,7 @@ public class InputParams {
   private boolean useGpu;
   private boolean learn;
   private boolean infer;
+  private boolean addNewConstants;
   
   public InputParams(String xmlFilePath) throws ParserConfigurationException, SAXException, IOException {
     File xmlFile = new File(xmlFilePath);
@@ -49,6 +50,7 @@ public class InputParams {
       databaseFile = doc.getElementsByTagName("database").item(0).getTextContent();
     }
     infer = (doc.getElementsByTagName("infer").item(0).getTextContent().equalsIgnoreCase("yes"));
+    addNewConstants = (doc.getElementsByTagName("addNewConstants").item(0).getTextContent().equalsIgnoreCase("yes"));
   }
   
   public String getMlnFile() {
@@ -89,5 +91,9 @@ public class InputParams {
   
   public boolean doInference() {
     return infer;
+  }
+  
+  public boolean addNewConstants() {
+    return addNewConstants;
   }
 }

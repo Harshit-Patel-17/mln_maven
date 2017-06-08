@@ -1,0 +1,85 @@
+#domains
+Bib={}
+AuthorDom={}
+TitleDom={}
+VenueDom={}
+Word={}
+Boolean={0, ..., 1}
+
+#predicates
+Author(Bib,AuthorDom)=Boolean
+Title(Bib,TitleDom)=Boolean
+Venue(Bib,VenueDom)=Boolean
+SameBib(Bib,Bib)=Boolean
+SameAuthor(AuthorDom,AuthorDom)=Boolean
+SameTitle(TitleDom,TitleDom)=Boolean
+SameVenue(VenueDom,VenueDom)=Boolean
+
+HasWordAuthor(AuthorDom, Word)=Boolean
+HasWordTitle(TitleDom, Word)=Boolean
+HasWordVenue(VenueDom, Word)=Boolean
+
+#formulas
+//############################################################################ 
+//### single Predicate rules  
+//############################################################################ 
+ 
+0::(!SameBib(b1,b2)=1)
+0::(!SameAuthor(a1,a2)=1)
+0::(!SameTitle(t1,t2)=1)
+9::(!SameVenue(v1,v2)=1)
+
+//############################################################################ 
+//### transitive closure rules  
+//############################################################################ 
+
+
+//(!SameBib(b1,b2)=1 | !SameBib(b2,b3)=1 | SameBib(b1,b3)=1)::0
+//(!SameAuthor(a1,a2)=1 | !SameAuthor(a2,a3)=1 | SameAuthor(a1,a3)=1)::0
+//(!SameTitle(t1,t2)=1 | !SameTitle(t2,t3)=1 | SameTitle(t1,t3)=1)::0
+//(!SameVenue(v1,v2)=1 | !SameVenue(v2,v3)=1 | SameVenue(v1,v3)=1)::0
+
+
+//############################################################################ 
+//### rules connecting attribute match predicates to class match predicates   
+//############################################################################ 
+ 
+0::(!Author(bc1,a1)=1 v !Author(bc2,a2)=1 v !SameAuthor(a1,a2)=1 v SameBib(bc1,bc2)=1)
+0::(!Title(bc1,t1)=1 v !Title(bc2,t2)=1 v !SameTitle(t1,t2)=1 v SameBib(bc1,bc2)=1) 
+0::(!Venue(bc1,v1)=1 v !Venue(bc2,v2)=1 v !SameVenue(v1,v2)=1 v SameBib(bc1,bc2)=1) 
+
+0::(!Author(bc1,a1)=1 v !Author(bc2,a2)=1 v !SameBib(bc1,bc2)=1 v SameAuthor(a1,a2)=1) 
+0::(!Title(bc1,t1)=1 v !Title(bc2,t2)=1 v !SameBib(bc1,bc2)=1 v SameTitle(t1,t2)=1) 
+0::(!Venue(bc1,v1)=1 v !Venue(bc2,v2)=1 v !SameBib(bc1,bc2)=1 v SameVenue(v1,v2)=1) 
+
+
+//############################################################################ 
+//### rules connecting evidence predicates to attr match predicates 
+//############################################################################ 
+0::(!HasWordAuthor(a1, w)=1 v !HasWordAuthor(a2, w)=1 v SameAuthor(a1, a2)=1)
+0::(HasWordAuthor(a1, w)=1 v !HasWordAuthor(a2, w)=1 v SameAuthor(a1, a2)=1)
+0::(!HasWordAuthor(a1, w)=1 v HasWordAuthor(a2, w)=1 v SameAuthor(a1, a2)=1)
+
+0::(!HasWordTitle(a1, w)=1 v !HasWordTitle(a2, w)=1 v SameTitle(a1, a2)=1)
+0::(HasWordTitle(a1, w)=1 v !HasWordTitle(a2, w)=1 v SameTitle(a1, a2)=1)
+0::(!HasWordTitle(a1, w)=1 v HasWordTitle(a2, w)=1 v SameTitle(a1, a2)=1)
+
+0::(!HasWordVenue(a1, w)=1 v !HasWordVenue(a2, w)=1 v SameVenue(a1, a2)=1)
+0::(HasWordVenue(a1, w)=1 v !HasWordVenue(a2, w)=1 v SameVenue(a1, a2)=1)
+0::(!HasWordVenue(a1, w)=1 v HasWordVenue(a2, w)=1 v SameVenue(a1, a2)=1)
+
+
+//############################################################################ 
+//### rules connecting the class predicates directly to evidence predicates 
+//############################################################################ 
+0::(!Author(bc1, a1)=1 v !Author(bc2, a2)=1 v !HasWordAuthor(a1, w)=1 v !HasWordAuthor(a2, w)=1 v SameBib(bc1, bc2)=1)
+0::(!Author(bc1, a1)=1 v !Author(bc2, a2)=1 v  HasWordAuthor(a1, w)=1 v !HasWordAuthor(a2, w)=1 v SameBib(bc1, bc2)=1)
+0::(!Author(bc1, a1)=1 v !Author(bc2, a2)=1 v !HasWordAuthor(a1, w)=1 v  HasWordAuthor(a2, w)=1 v SameBib(bc1, bc2)=1)
+
+0::(!Title(bc1, t1)=1 v !Title(bc2, t2)=1 v !HasWordTitle(t1, w)=1 v !HasWordTitle(t2, w)=1 v SameBib(bc1, bc2)=1)
+0::(!Title(bc1, t1)=1 v !Title(bc2, t2)=1 v  HasWordTitle(t1, w)=1 v !HasWordTitle(t2, w)=1 v SameBib(bc1, bc2)=1)
+0::(!Title(bc1, t1)=1 v !Title(bc2, t2)=1 v !HasWordTitle(t1, w)=1 v  HasWordTitle(t2, w)=1 v SameBib(bc1, bc2)=1)
+
+0::(!Venue(bc1, v1)=1 v !Venue(bc2, v2)=1 v !HasWordVenue(v1, w)=1 v !HasWordVenue(v2, w)=1 v SameBib(bc1, bc2)=1)
+0::(!Venue(bc1, v1)=1 v !Venue(bc2, v2)=1 v  HasWordVenue(v1, w)=1 v !HasWordVenue(v2, w)=1 v SameBib(bc1, bc2)=1)
+0::(!Venue(bc1, v1)=1 v !Venue(bc2, v2)=1 v !HasWordVenue(v1, w)=1 v  HasWordVenue(v2, w)=1 v SameBib(bc1, bc2)=1)

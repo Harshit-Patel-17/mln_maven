@@ -72,17 +72,43 @@ public class MlnFactory {
   public Mln createMln(InputParams inputParams) throws MlnParseException, IOException, InterruptedException, QueryParseException, EvidenceParseException, DatabaseParseException {
     
     Mln mln = parseMlnFile(inputParams.getMlnFile());
+    if(inputParams.addNewConstants()) {
+      //Collect constants from database and evidence files
+      System.out.println("Collecting constants from database and evidence files.");
+      if(inputParams.doLearning()) {
+        parseDatabaseFile(inputParams.getDatabaseFile(), mln, true);
+      }
+      parseEvidenceFile(inputParams.getEvidenceFile(), mln, true);
+      
+      //Reset totalGroundings of formulae as new constants are added
+      for(Formula formula : mln.getFormulas()) {
+        formula.setTotalGroundings();
+      }
+    }
+    
+    for(Domain domain : mln.getDomains()) {
+      System.out.print(domain);
+      System.out.println("Total:" + domain.size());
+    }
+    
+    for(Formula formula : mln.getFormulas()) {
+      System.out.print(formula);
+      System.out.println("Total Groundings:" + formula.getTotalGroundings());
+    }
+    
+    System.exit(1);
+    
     mln.addStateWithEvidenceAndQuery(new GpuState(mln.getPredicateDefs()));
     mln.addDatabase(new GpuState(mln.getPredicateDefs()));
     parseQueryFile(inputParams.getQueryFile(), mln);
-    parseEvidenceFile(inputParams.getEvidenceFile(), mln);
+    parseEvidenceFile(inputParams.getEvidenceFile(), mln, false);
     
     State state = mln.getStateWithEvidenceAndQuery();
     state.resetMarginalCounts();
     
     long startTime = System.nanoTime();
     if(inputParams.doLearning()) {
-      parseDatabaseFile(inputParams.getDatabaseFile(), mln);
+      parseDatabaseFile(inputParams.getDatabaseFile(), mln, false);
       Learning learning = new PerWeightLearningRatesLearning(1e-1, 15, 1e-5);
       learning.learn(mln);
     }
@@ -178,7 +204,7 @@ public class MlnFactory {
     walker.walk(listener, queryContext);
   }
   
-  private void parseEvidenceFile(String evidenceFile, Mln mln) throws IOException, EvidenceParseException {
+  private void parseEvidenceFile(String evidenceFile, Mln mln, boolean collectConstants) throws IOException, EvidenceParseException {
     //Create input stream
     File f = new File(evidenceFile);
     InputStream in = new FileInputStream(f);
@@ -209,13 +235,13 @@ public class MlnFactory {
     //Add event listener for syntax directed definition. 
     //Refer to Mln.g4 to understand the class MyMlnBaseListener
     ParseTreeWalker walker = new ParseTreeWalker();
-    MyEvidenceBaseListener listener = new MyEvidenceBaseListener(p, mln);
+    MyEvidenceBaseListener listener = new MyEvidenceBaseListener(p, mln, collectConstants);
     
     //Walk parse tree
     walker.walk(listener, evidenceContext);
   }
   
-  private void parseDatabaseFile(String databaseFile, Mln mln) throws IOException, QueryParseException, DatabaseParseException {
+  private void parseDatabaseFile(String databaseFile, Mln mln, boolean collectConstants) throws IOException, QueryParseException, DatabaseParseException {
     //Create input stream
     File f = new File(databaseFile);
     InputStream in = new FileInputStream(f);
@@ -246,7 +272,7 @@ public class MlnFactory {
     //Add event listener for syntax directed definition. 
     //Refer to Mln.g4 to understand the class MyMlnBaseListener
     ParseTreeWalker walker = new ParseTreeWalker();
-    MyDatabaseBaseListener listener = new MyDatabaseBaseListener(p, mln);
+    MyDatabaseBaseListener listener = new MyDatabaseBaseListener(p, mln, collectConstants);
     
     //Walk parse tree
     walker.walk(listener, databaseContext);

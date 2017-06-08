@@ -66,14 +66,16 @@ predicate locals[Predicate pred]
 	;	
 	
 symblist
-	: SYMBOL 
+	:
+	| SYMBOL 
 	| INTEGER
 	| SYMBOL COMMA symblist
 	| INTEGER COMMA symblist
 	;
 
 symbvarlist
-	: SYMBOL
+	:
+	| SYMBOL
 	| INTEGER
 	| IDENTIFIER
 	| SYMBOL COMMA symbvarlist

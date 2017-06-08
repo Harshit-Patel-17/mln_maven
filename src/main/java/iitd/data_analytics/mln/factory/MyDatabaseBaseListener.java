@@ -16,21 +16,63 @@ public class MyDatabaseBaseListener extends DatabaseBaseListener {
 
   private DatabaseParser p;
   private Mln mln;
+  private boolean collectConstants;
   
-  public MyDatabaseBaseListener(DatabaseParser _p, Mln _mln) {
+  public MyDatabaseBaseListener(DatabaseParser _p, Mln _mln, boolean _collectConstants) {
     super();
     p = _p;
     mln = _mln;
+    collectConstants = _collectConstants;
+  }
+  
+  public void setCollectConstants(boolean _collectConstants) {
+    collectConstants = _collectConstants;
   }
   
   @Override
   public void exitDatabaseItem1(DatabaseItem1Context ctx) {
     super.exitDatabaseItem1(ctx);
-    validateAndAddDatabaseAtoms(ctx.predicateName.getText(), parseList(ctx.vals.getText()), ctx.val.getText());
+    if(!collectConstants) {
+      validateAndAddDatabaseAtoms(ctx.predicateName.getText(), parseList(ctx.vals.getText()), ctx.val.getText());
+    } else {
+      validateAndAddConstants(ctx.predicateName.getText(), parseList(ctx.vals.getText()), ctx.val.getText());
+    }
   }
   
   private ArrayList<String> parseList(String csv) {
     return new ArrayList<String>(Arrays.asList(csv.split(",")));
+  }
+
+  private void validateAndAddConstants(String predicateName, ArrayList<String> terms, String val) {
+    if(!mln.getPredicateSymbols().exist(predicateName)) {
+      String msg = "Predicate " + predicateName + " is not defined in Mln.";
+      p.notifyErrorListeners(msg);
+    }
+    PredicateDef predicateDef = mln.getPredicateDefByName(predicateName);
+    addConstants(predicateName, predicateDef.getDomains(), terms);
+    if(!predicateDef.getVals().exist(val)) {
+      String msg = "Value of predicate " + predicateName + " doesn't match with any valid "
+          + "values in definition.";
+      p.notifyErrorListeners(msg);
+    }
+  }
+  
+  private void addConstants(String predicateName, ArrayList<Domain> domains,
+      ArrayList<String> terms) {
+    if(domains.size() != terms.size()) {
+      String msg = "Number of terms of predicate " + predicateName + " doesn't "
+          + "matches with its definition.";
+      p.notifyErrorListeners(msg);
+    }
+    
+    System.out.println("Added");
+    for(int i = 0; i < domains.size(); i++) {
+      Domain domain = domains.get(i);
+      String term = terms.get(i);
+      if(!domain.exist(term)) {
+        domain.addVal(term);
+      }
+    }
   }
   
   private void validateAndAddDatabaseAtoms(String predicateName, ArrayList<String> terms, String val) {

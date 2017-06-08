@@ -14,6 +14,7 @@ public abstract class Formula {
   private ArrayList<ArrayList<Predicate>> clauses;
   private Map<String,Domain> varsDomain;
   private Symbols varsId;
+  private long totalGroundings;
   
   public Formula(int _formulaId, FirstOrderFormula<Predicate> foFormula, 
       Map<String,Domain> _varsDomain, Symbols _varsId, double _weight) {
@@ -34,6 +35,13 @@ public abstract class Formula {
     varsDomain = _varsDomain;
     varsId = _varsId;
     weight = _weight;
+    
+    totalGroundings = 1;
+    for(int i = 0; i < varsId.size(); i++) {
+      String varSymbol = _varsId.getSymbolFromId(i);
+      int domainSize = _varsDomain.get(varSymbol).size();
+      totalGroundings *= domainSize;
+    }
   }
   
   //Getters and Setters
@@ -59,6 +67,19 @@ public abstract class Formula {
   
   public Symbols getVarsId() {
     return varsId;
+  }
+  
+  public void setTotalGroundings() {
+    totalGroundings = 1;
+    for(int i = 0; i < varsId.size(); i++) {
+      String varSymbol = varsId.getSymbolFromId(i);
+      int domainSize = varsDomain.get(varSymbol).size();
+      totalGroundings *= domainSize;
+    }
+  }
+  
+  public long getTotalGroundings() {
+    return totalGroundings;
   }
   
   public boolean groundAtomExist(int predicateId, int[] vals) {

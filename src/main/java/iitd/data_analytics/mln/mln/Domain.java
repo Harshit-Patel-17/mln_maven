@@ -18,8 +18,14 @@ public class Domain {
   //Getter and Setters
   public void addVals(ArrayList<String> _vals) {
     for(int i = 0; i < _vals.size(); i++) {
-      vals.addMapping(i, _vals.get(i));
+      if(!_vals.get(i).equalsIgnoreCase("")) {
+        vals.addMapping(i, _vals.get(i));
+      }
     }
+  }
+  
+  public void addVal(String val) {
+    vals.addMapping(vals.size(), val);
   }
   
   public Symbols getVals() {
