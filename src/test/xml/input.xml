@@ -8,8 +8,10 @@
 	<learn>yes</learn>
 	<infer>yes</infer>
 	
+	<addNewConstants>yes</addNewConstants>
+	
 	<gpu>yes</gpu>
 	<ptxPath>src/main/java/iitd/data_analytics/mln/gpu/</ptxPath>
 	<gpuThreads>1024</gpuThreads>
-	<addNewConstants>yes</addNewConstants>
+	<maxBatchSize>10000000</maxBatchSize>
 </input>

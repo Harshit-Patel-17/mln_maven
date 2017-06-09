@@ -25,6 +25,7 @@ public class InputParams {
   private boolean learn;
   private boolean infer;
   private boolean addNewConstants;
+  private int maxBatchSize;
   
   public InputParams(String xmlFilePath) throws ParserConfigurationException, SAXException, IOException {
     File xmlFile = new File(xmlFilePath);
@@ -51,6 +52,7 @@ public class InputParams {
     }
     infer = (doc.getElementsByTagName("infer").item(0).getTextContent().equalsIgnoreCase("yes"));
     addNewConstants = (doc.getElementsByTagName("addNewConstants").item(0).getTextContent().equalsIgnoreCase("yes"));
+    maxBatchSize = Integer.parseInt(doc.getElementsByTagName("maxBatchSize").item(0).getTextContent());
   }
   
   public String getMlnFile() {
@@ -95,5 +97,9 @@ public class InputParams {
   
   public boolean addNewConstants() {
     return addNewConstants;
+  }
+  
+  public int getMaxBatchSize() {
+    return maxBatchSize;
   }
 }

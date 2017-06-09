@@ -74,7 +74,7 @@ public class MlnFactory {
     Mln mln = parseMlnFile(inputParams.getMlnFile());
     if(inputParams.addNewConstants()) {
       //Collect constants from database and evidence files
-      System.out.println("Collecting constants from database and evidence files.");
+      System.out.println("Collecting constants from database and evidence files.\n");
       if(inputParams.doLearning()) {
         parseDatabaseFile(inputParams.getDatabaseFile(), mln, true);
       }
@@ -86,18 +86,6 @@ public class MlnFactory {
       }
     }
     
-    for(Domain domain : mln.getDomains()) {
-      System.out.print(domain);
-      System.out.println("Total:" + domain.size());
-    }
-    
-    for(Formula formula : mln.getFormulas()) {
-      System.out.print(formula);
-      System.out.println("Total Groundings:" + formula.getTotalGroundings());
-    }
-    
-    System.exit(1);
-    
     mln.addStateWithEvidenceAndQuery(new GpuState(mln.getPredicateDefs()));
     mln.addDatabase(new GpuState(mln.getPredicateDefs()));
     parseQueryFile(inputParams.getQueryFile(), mln);
@@ -106,9 +94,23 @@ public class MlnFactory {
     State state = mln.getStateWithEvidenceAndQuery();
     state.resetMarginalCounts();
     
-    long startTime = System.nanoTime();
+    long startTime, endTime;
     if(inputParams.doLearning()) {
       parseDatabaseFile(inputParams.getDatabaseFile(), mln, false);
+      for(Formula formula : mln.getFormulas()) {
+        System.out.print(formula);
+        System.out.println("Total Groundings:" + formula.getTotalGroundings());
+        startTime = System.nanoTime();
+        System.out.println("Sat Groundings GPU:" + formula.countSatisfiedGroundingsNoDb(mln.getStateWithEvidenceAndQuery(), 0));
+        endTime = System.nanoTime();
+        System.out.println("Gpu Time: " + (endTime - startTime)/1e9);
+        startTime = System.nanoTime();
+        System.out.println("Sat Groundings CPU:" + formula.countSatisfiedGroundingsCPUNoDb(mln.getStateWithEvidenceAndQuery()));
+        endTime = System.nanoTime();
+        System.out.println("Cpu Time: " + (endTime - startTime)/1e9);
+        System.out.println("");
+      }
+      System.exit(1);
       Learning learning = new PerWeightLearningRatesLearning(1e-1, 15, 1e-5);
       learning.learn(mln);
     }
@@ -119,8 +121,6 @@ public class MlnFactory {
       //state.outputMaxMarginals(inputParams.getOutputFile());
       state.outputMarginals(inputParams.getOutputFile());
     }
-    long endTime = System.nanoTime();
-    System.out.println("Time: " + (endTime - startTime)/1e9);
     
     return mln;
   }

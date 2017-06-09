@@ -50,14 +50,14 @@ __global__ void evalClauseKernel(int *d_satArray, int **d_interpretation, int *d
 extern "C"
 __global__ void evalClauseWithoutDbKernel(int totalVars, int totalPreds, int *d_varDomainSizes,
                                   int *d_predicates, int *d_negated, int *d_predBaseIdx, int *d_valTrue, int *d_predVarMat, 
-								  int *d_satArray, int **d_interpretation, long totalGroundings, int *d_mem)
+								  int *d_satArray, int **d_interpretation, long totalGroundings, long offset, int *d_mem)
 {
   long idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if(idx < totalGroundings && d_satArray[idx] == 1)
     {
 		int memBase = idx * totalVars;
-		long n = idx;
+		long n = idx + offset;
 		for(int i = totalVars-1; i >= 0; i--)
 		{
 		  int domainSize = d_varDomainSizes[i];

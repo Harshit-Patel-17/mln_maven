@@ -65,7 +65,6 @@ public class MyDatabaseBaseListener extends DatabaseBaseListener {
       p.notifyErrorListeners(msg);
     }
     
-    System.out.println("Added");
     for(int i = 0; i < domains.size(); i++) {
       Domain domain = domains.get(i);
       String term = terms.get(i);

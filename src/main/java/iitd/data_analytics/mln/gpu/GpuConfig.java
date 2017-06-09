@@ -9,9 +9,10 @@ public class GpuConfig {
   public static int maxThreads;
   public static String ptxBase;//"src/main/java/iitd/data_analytics/mln/gpu/";
   public static int totalGpus;
+  public static int maxBatchSize;
+  
   public static CUdevice[] device;
   public static CUcontext[] context;
-  
   public static CUmodule[] mlnCudaKernels;
   public static CUmodule[] utilCudaKernels;
   
@@ -21,6 +22,8 @@ public class GpuConfig {
     maxThreads = params.getMaxThreads();
     
     ptxBase = params.getPtxFilesPath();//"src/main/java/iitd/data_analytics/mln/gpu/";
+    
+    maxBatchSize = params.getMaxBatchSize();
     
     int[] _totalGpus = new int[1];
     cuDeviceGetCount(_totalGpus);
