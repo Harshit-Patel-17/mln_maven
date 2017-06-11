@@ -29,6 +29,7 @@ import iitd.data_analytics.mln.exceptions.DatabaseParseException;
 import iitd.data_analytics.mln.exceptions.EvidenceParseException;
 import iitd.data_analytics.mln.exceptions.MlnParseException;
 import iitd.data_analytics.mln.exceptions.QueryParseException;
+import iitd.data_analytics.mln.gpu.GpuFormula;
 import iitd.data_analytics.mln.gpu.GpuState;
 import iitd.data_analytics.mln.inference.SamplingMarginalInference;
 import iitd.data_analytics.mln.inference.MarginalInference;
@@ -94,30 +95,52 @@ public class MlnFactory {
     State state = mln.getStateWithEvidenceAndQuery();
     state.resetMarginalCounts();
     
+    /*Map<Integer, Integer> varVals = new HashMap<Integer, Integer>();
+    varVals.put(1, 0);
+    varVals.put(2, 0);
+    varVals.put(3, 0);
+    varVals.put(4, 0);
+    Formula f1 = mln.getFormulas().get(0);
+    Formula f2 = mln.getFormulas().get(1);
+    Formula f12 = new GpuFormula(f1);
+    f12.substitute(varVals);
+    f1.display();
+    f1.displaySymbolic();
+    //System.out.println(f1.countSatisfiedGroundings(state, 0));
+    f12.display();
+    f12.displaySymbolic();
+    f2.display();
+    f2.displaySymbolic();
+    System.out.println(f12.countSatisfiedGroundings(state, 0));
+    System.out.println(f2.countSatisfiedGroundings(state, 0));
+    System.out.println(f2.countSatisfiedGroundingsCPUNoDb(state));
+    System.exit(1);*/
+    
     long startTime, endTime;
+    /*for(Formula formula : mln.getFormulas()) {
+      startTime = System.nanoTime();
+      System.out.println(formula.countSatisfiedGroundingsNoDb(state, 0));
+      endTime = System.nanoTime();
+      System.out.println("Gpu1 Time: " + (endTime - startTime)/1e9);
+      startTime = System.nanoTime();
+      System.out.println(formula.countSatisfiedGroundings(state, 0));
+      endTime = System.nanoTime();
+      System.out.println("Gpu2 Time: " + (endTime - startTime)/1e9);
+    }
+    System.exit(1);*/
+    
     if(inputParams.doLearning()) {
       parseDatabaseFile(inputParams.getDatabaseFile(), mln, false);
-      for(Formula formula : mln.getFormulas()) {
-        System.out.print(formula);
-        System.out.println("Total Groundings:" + formula.getTotalGroundings());
-        startTime = System.nanoTime();
-        System.out.println("Sat Groundings GPU:" + formula.countSatisfiedGroundingsNoDb(mln.getStateWithEvidenceAndQuery(), 0));
-        endTime = System.nanoTime();
-        System.out.println("Gpu Time: " + (endTime - startTime)/1e9);
-        startTime = System.nanoTime();
-        System.out.println("Sat Groundings CPU:" + formula.countSatisfiedGroundingsCPUNoDb(mln.getStateWithEvidenceAndQuery()));
-        endTime = System.nanoTime();
-        System.out.println("Cpu Time: " + (endTime - startTime)/1e9);
-        System.out.println("");
-      }
-      System.exit(1);
       Learning learning = new PerWeightLearningRatesLearning(1e-1, 15, 1e-5);
       learning.learn(mln);
     }
     if(inputParams.doInference()) {
-      GibbsSampler gibbsSampler = new GibbsSampler(mln, 1000);
-      MarginalInference marginalInference = new SamplingMarginalInference(10000, gibbsSampler);
+      startTime = System.nanoTime();
+      GibbsSampler gibbsSampler = new GibbsSampler(mln, 2000);
+      MarginalInference marginalInference = new SamplingMarginalInference(20000, gibbsSampler);
       marginalInference.getMarginals(state);
+      endTime = System.nanoTime();
+      System.out.println("Gpu Time: " + (endTime - startTime)/1e9);
       //state.outputMaxMarginals(inputParams.getOutputFile());
       state.outputMarginals(inputParams.getOutputFile());
     }

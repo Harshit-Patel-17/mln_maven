@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <input>
-	<mln>src/test/antlr4/cora.mln</mln>
-	<query>src/test/antlr4/cora.ne</query>
-	<evidence>src/test/antlr4/cora.e</evidence>
-	<database>src/test/antlr4/cora.db</database>
-	<output>src/test/antlr4/cora.output</output>
-	<learn>yes</learn>
+	<mln>src/test/antlr4/uniform.mln</mln>
+	<query>src/test/antlr4/uniform.ne</query>
+	<evidence>src/test/antlr4/uniform.e</evidence>
+	<database>src/test/antlr4/uniform.db</database>
+	<output>src/test/antlr4/uniform.output</output>
+	<learn>no</learn>
 	<infer>yes</infer>
 	
-	<addNewConstants>yes</addNewConstants>
+	<addNewConstants>no</addNewConstants>
 	
 	<gpu>yes</gpu>
 	<ptxPath>src/main/java/iitd/data_analytics/mln/gpu/</ptxPath>

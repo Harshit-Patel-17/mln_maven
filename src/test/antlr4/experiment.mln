@@ -1,25 +1,32 @@
 #domains
 //Dom1 = {1,...,5}
 //Dom2 = {1,...,5}
-Dom1 = {1,...,1000}
+//Dom1 = {1,...,1000}
 //Dom2 = {1,...,10000}
-Dom2 = {1,...,100}
-Dom3 = {1,...,100}
+//Dom2 = {1,...,100}
+//Dom3 = {1,...,100}
 //Flip = {1,...,20}
-Throw = {1,...,20}
-Face = {1,...,6}
+//Throw = {1,...,20}
+//Face = {1,...,6}
+Dom = {1,...,100}
 
 #predicates
 //R(Dom1, Dom1) = {0,1}
-P(Dom1) = {0,1}
-Q(Dom2) = {0,1}
-R(Dom1, Dom3) = {0,1}
+//P(Dom1) = {0,1}
+//Q(Dom2) = {0,1}
+//R(Dom1, Dom3) = {0,1}
 //Heads(Flip) = {0,1}
 //Tails(Flip) = {0,1}
-Outcome(Throw) = Face
+//Outcome(Throw) = Face
+P(Dom) = {0,1}
+Q(Dom) = {0,1}
+R(Dom) = {0,1}
+S(Dom) = {0,1}
 
 #formulas
-1::P(x) = 0 ^ Q(y) = 1 ^ R(x, z) = 0
+1::P(x) = 1 ^ Q(y) = 1 ^ R(z) = 1 ^ S(w) = 1 ^ P(a) = 1
+1::P(x) = 1 ^ Q(1) = 1 ^ R(1) = 1 ^ S(1) = 1 ^ P(1) = 1
+//1::P(x) = 0 ^ Q(y) = 1 ^ R(x, z) = 0
 //0.09::(!P(x) = 0 v Q(y) = 0 v R(x, z) = 1) ^ (P(x) = 0 v Q(y) = 0 v R(x, z) = 1)
 //1e-5::Heads(f) = 1 ^ Tails(f) = 1
 //1e-5::Tails(f) = 1 v Heads(f) = 1

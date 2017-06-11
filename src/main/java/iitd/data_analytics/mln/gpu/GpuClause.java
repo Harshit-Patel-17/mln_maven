@@ -2,6 +2,7 @@ package iitd.data_analytics.mln.gpu;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 
 import iitd.data_analytics.mln.mln.Domain;
 import iitd.data_analytics.mln.mln.Predicate;
@@ -16,25 +17,25 @@ public class GpuClause {
   public int totalVars;
   public long totalGroundings;
   public int[] predicates;
-  public int[] varDomainSizes;
+  //public int[] varDomainSizes;
   public int[] isNegated;
   public int[] predBaseIdx;
   public int[] predVarMat;
   public int[] valTrue;
-  public int[] dbIndex;
+  //public int[] dbIndex;
   
   public GpuClause(ArrayList<Predicate> _clause, int _totalVars, long _totalGroundings,
-      int[] _varDomainSizes) {
+      int[] _varDomainSizes, Map<Integer,Integer> oldVarIdToNewVarId) {
     totalPreds = _clause.size();
     totalVars = _totalVars;
     totalGroundings = _totalGroundings;
     predicates = new int[totalPreds];
-    varDomainSizes = _varDomainSizes;
+    //varDomainSizes = _varDomainSizes;
     isNegated = new int[totalPreds];
     predBaseIdx = new int[totalPreds];
     predVarMat = new int[totalPreds * totalVars];
     valTrue = new int[totalPreds];
-    dbIndex = new int[totalPreds * (int)_totalGroundings];
+    //dbIndex = new int[totalPreds * (int)_totalGroundings];
     
     for(int i = 0; i < _clause.size(); i++) {
       Predicate predicate = _clause.get(i);
@@ -49,7 +50,7 @@ public class GpuClause {
       ArrayList<Domain> domains = predicateDef.getDomains();
       for(int j = 0; j < terms.size(); j++) {
         if(isVariable.get(j)) {
-          int varId = terms.get(j);
+          int varId = oldVarIdToNewVarId.get(terms.get(j));
           predVarMat[varId * totalPreds + i] = runningWeight;
         } else {
           baseIndex += terms.get(j) * runningWeight;
@@ -62,7 +63,7 @@ public class GpuClause {
     //initDbIndex(); //TODO: Uncomment it later
   }
   
-  private void initDbIndex()
+  /*private void initDbIndex()
   {
     // Load the ptx file.
     CUmodule module = new CUmodule();
@@ -108,8 +109,8 @@ public class GpuClause {
 
     int blockSizeX = Math.min(GpuConfig.maxThreads, (int)totalGroundings);
     int gridSizeX = ((int)totalGroundings + blockSizeX - 1) / blockSizeX;
-    /*System.out.println("Grid size: " + gridSizeX + ", Block size: " + blockSizeX + 
-        " :: initDbIndex");*/
+    System.out.println("Grid size: " + gridSizeX + ", Block size: " + blockSizeX + 
+        " :: initDbIndex");
 
     cuLaunchKernel(function,
       gridSizeX, 1, 1,
@@ -126,7 +127,7 @@ public class GpuClause {
     cuMemFree(d_predBaseIdx);
     cuMemFree(d_predVarMat);
     cuMemFree(d_dbIndex);
-  }
+  }*/
   
   @Override
   public String toString() {

@@ -2,6 +2,7 @@ package iitd.data_analytics.mln.mln;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import iitd.data_analytics.mln.logic.FirstOrderFormula;
@@ -37,11 +38,52 @@ public abstract class Formula {
     weight = _weight;
     
     totalGroundings = 1;
-    for(int i = 0; i < varsId.size(); i++) {
+    //for(int i = 0; i < varsId.size(); i++) {
+    for(int i : varsId.getIds()) {
       String varSymbol = _varsId.getSymbolFromId(i);
       int domainSize = _varsDomain.get(varSymbol).size();
       totalGroundings *= domainSize;
     }
+  }
+  
+  public Formula(Formula f) {
+    formulaId = f.formulaId;
+    weight = f.weight;
+    clauses = new ArrayList<ArrayList<Predicate>>();
+    for(ArrayList<Predicate> _clause : f.clauses) {
+      ArrayList<Predicate> clause = new ArrayList<Predicate>();
+      for(Predicate predicate : _clause) {
+        clause.add(new Predicate(predicate));
+      }
+      clauses.add(clause);
+    }
+    varsDomain = new HashMap<String,Domain>();
+    for(String var : f.varsDomain.keySet()) {
+      varsDomain.put(var, f.varsDomain.get(var));
+    }
+    varsId = new Symbols(f.varsId);
+    totalGroundings = f.totalGroundings;
+  }
+  
+  public void substitute(Map<Integer, Integer> varVals) {
+    Map<Integer, String> varSymbolicVals = new HashMap<Integer, String>();
+    for(Integer var : varVals.keySet()) {
+      assert varsId.exist(var) : "Variable must exist in formula for substitution.";
+      Integer val = varVals.get(var);
+      String varName = varsId.getSymbolFromId(var);
+      String symbolicVal = varsDomain.get(varName).getValSymbolFromId(val);
+      varSymbolicVals.put(var, symbolicVal);
+      varsId.removeMapping(var);
+      varsDomain.remove(varName);
+    }
+    
+    for(ArrayList<Predicate> clause : clauses) {
+      for(Predicate predicate : clause) {
+        predicate.substitute(varVals, varSymbolicVals);
+      }
+    }
+    
+    setTotalGroundings();
   }
   
   //Getters and Setters
@@ -71,7 +113,8 @@ public abstract class Formula {
   
   public void setTotalGroundings() {
     totalGroundings = 1;
-    for(int i = 0; i < varsId.size(); i++) {
+    //for(int i = 0; i < varsId.size(); i++) {
+    for(int i : varsId.getIds()) {
       String varSymbol = varsId.getSymbolFromId(i);
       int domainSize = varsDomain.get(varSymbol).size();
       totalGroundings *= domainSize;
@@ -97,6 +140,7 @@ public abstract class Formula {
   //Abstract methods
   //public abstract long countSatisfiedGroundings(State state);
   public abstract long countSatisfiedGroundingsNoDb(State state, int gpuNo);
+  public abstract long countSatisfiedGroundings(State state, int gpuNo);
   //public abstract long countSatisfiedGroundingsCPU(State state);
   public abstract long countSatisfiedGroundingsCPUNoDb(State state);
   
@@ -113,7 +157,7 @@ public abstract class Formula {
   }
   
   public void displaySymbolic() {
-    System.out.print("id:" + formulaId + "w:" + weight);
+    System.out.print("id:" + formulaId + " w:" + weight);
     for(ArrayList<Predicate> _clause : clauses) {
       System.out.print(" (");
       for(Predicate p : _clause) {

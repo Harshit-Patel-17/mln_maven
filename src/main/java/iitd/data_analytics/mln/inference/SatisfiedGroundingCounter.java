@@ -86,7 +86,8 @@ class CountingThread extends Thread{
     //cudaSetDevice(gpuNo);
     
     for(int i = 0; i < formulas.length; i++) {
-      counts[i] = formulas[i].countSatisfiedGroundingsNoDb(state, gpuNo);
+      //counts[i] = formulas[i].countSatisfiedGroundingsNoDb(state, gpuNo);
+      counts[i] = formulas[i].countSatisfiedGroundings(state, gpuNo);
     }
     
     /*cuCtxDestroy(context);*/

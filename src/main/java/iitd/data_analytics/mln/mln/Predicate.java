@@ -56,6 +56,17 @@ public class Predicate {
     value = p.value;
   }
   
+  void substitute(Map<Integer, Integer> varVals, Map<Integer, String> varSymbolicVals) {
+    for(int i = 0; i < terms.size(); i++) {
+      if(isVariable.get(i) && varVals.containsKey(terms.get(i))) {
+        int varId = terms.get(i);
+        terms.set(i, varVals.get(varId));
+        symbolicTerms.set(i, varSymbolicVals.get(varId));
+        isVariable.set(i, false);
+      }
+    }
+  }
+  
   //Getters and Setters
   public PredicateDef getPredicateDef() {
     return predicateDef;
