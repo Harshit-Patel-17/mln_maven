@@ -77,13 +77,7 @@ class CountingThread extends Thread{
 
   @Override
   public void run() {
-    /*CUdevice device = new CUdevice();
-    assert cuDeviceGet(device, 1-gpuNo) == CUresult.CUDA_SUCCESS;
-    CUcontext context = new CUcontext();
-    assert cuCtxCreate(context, 0, device) == CUresult.CUDA_SUCCESS;*/
     cuCtxSetCurrent(GpuConfig.context[gpuNo]);
-    //cuCtxPushCurrent(GpuConfig.context[2]);
-    //cudaSetDevice(gpuNo);
     
     for(int i = 0; i < formulas.length; i++) {
       //counts[i] = formulas[i].countSatisfiedGroundingsNoDb(state, gpuNo);

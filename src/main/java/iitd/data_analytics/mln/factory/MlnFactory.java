@@ -135,10 +135,14 @@ public class MlnFactory {
       learning.learn(mln);
     }
     if(inputParams.doInference()) {
+      for(Formula formula : mln.getFormulas()) {
+        formula.displaySymbolic();
+        System.out.println("Total Groundings:" + formula.getTotalGroundings());
+      }
       startTime = System.nanoTime();
-      GibbsSampler gibbsSampler = new GibbsSampler(mln, 2000);
-      MarginalInference marginalInference = new SamplingMarginalInference(20000, gibbsSampler);
-      marginalInference.getMarginals(state);
+      GibbsSampler gibbsSampler = new GibbsSampler(mln, state, 40000);
+      MarginalInference marginalInference = new SamplingMarginalInference(400000, gibbsSampler);
+      state = marginalInference.getMarginals();
       endTime = System.nanoTime();
       System.out.println("Gpu Time: " + (endTime - startTime)/1e9);
       //state.outputMaxMarginals(inputParams.getOutputFile());

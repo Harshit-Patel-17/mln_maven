@@ -24,16 +24,17 @@ public class SamplingMarginalInference extends MarginalInference {
     sampler = _sampler;
   }
   
-  public void generateMarginals(State state) {
+  public void generateMarginals() {
     for(int i = 0; i < totalSamples; i++) {
-      sampler.getNextSample(state);
+      State state = sampler.getNextSample();
       state.increaseMarginalCounts();
     }
   }
 
   @Override
-  public void getMarginals(State state) {
-    generateMarginals(state);
+  public State getMarginals() {
+    generateMarginals();
+    return sampler.getState();
   }
   
 }

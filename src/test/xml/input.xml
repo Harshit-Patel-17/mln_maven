@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <input>
-	<mln>src/test/antlr4/uniform.mln</mln>
-	<query>src/test/antlr4/uniform.ne</query>
-	<evidence>src/test/antlr4/uniform.e</evidence>
-	<database>src/test/antlr4/uniform.db</database>
-	<output>src/test/antlr4/uniform.output</output>
+	<mln>src/test/antlr4/experiment.mln</mln>
+	<query>src/test/antlr4/experiment.ne</query>
+	<evidence>src/test/antlr4/experiment.e</evidence>
+	<database>src/test/antlr4/experiment.db</database>
+	<output>src/test/antlr4/experiment.output</output>
 	<learn>no</learn>
 	<infer>yes</infer>
 	

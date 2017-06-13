@@ -396,6 +396,260 @@ public class GpuFormula extends Formula {
     return totalSatGroundings;    
   }
   
+  Map<Integer,Integer> getUnifier(Predicate predicate, int predicateId, int[] groundingVals) {
+    Map<Integer,Integer> unifier = new HashMap<Integer,Integer>();
+    
+    if(predicateId != predicate.getPredicateDef().getPredicateId()) {
+      return unifier;
+    }
+    
+    ArrayList<Integer> terms = predicate.getTerms();
+    ArrayList<Boolean> isVariable = predicate.getIsVariable();
+    
+    for(int i = 0; i < groundingVals.length; i++) {
+      int term = terms.get(i);
+      int groundingVal = groundingVals[i];
+      boolean isVar = isVariable.get(i);
+      if(isVar) {
+        if(unifier.containsKey(term)) {
+          if(unifier.get(term) != groundingVal) {
+            unifier.clear();
+            break;
+          }
+        } else {
+          unifier.put(term, groundingVal);
+        }
+      } else {
+        if(term != groundingVal) {
+          unifier.clear();
+          break;
+        }
+      }
+    }
+    
+    return unifier;
+  }
+  
+  public long countSatisfiedGroundingDiff(PredicateGroundingIndex predGroundingIdx, State state, int oldVal, 
+      int newVal, int gpuNo) {
+    long diff = 0;
+    
+    int predicateId = predGroundingIdx.predicateId;
+    int groundingId = predGroundingIdx.groundingId;
+    int[] groundingVals = state.getPredicateGroundings(predicateId).getGroundingVals(groundingId);
+    
+    ArrayList<ArrayList<Predicate>> _clauses = super.getClauses();
+    for(int i = 0; i < _clauses.size(); i++) {
+      ArrayList<Predicate> _clause = _clauses.get(i);
+      for(int j = 0; j < _clause.size(); j++) {
+        Predicate predicate = _clause.get(j);
+        Map<Integer,Integer> unifier = getUnifier(predicate, predicateId, groundingVals);
+        if(unifier.size() != 0) {
+          Formula f = new GpuFormula(this);
+          f.substitute(unifier);
+          diff += f.countSatisfiedGroundingDiffUtil(predGroundingIdx, state, oldVal, newVal, i, j, gpuNo);
+        }
+      }
+    }
+    return diff;
+  }
+  
+  @Override
+  public long countSatisfiedGroundingDiffUtil(PredicateGroundingIndex predGroundingIdx, State state, int oldVal, 
+      int newVal, int clauseIdx, int predicateIdx, int gpuNo) {
+    
+    GpuUtil gpuUtil = new GpuUtil();
+    
+    CUfunction function = new CUfunction();
+    cuModuleGetFunction(function, GpuConfig.mlnCudaKernels[gpuNo], "evalCNFdiffKernel");
+    
+    long totalBatches = (totalGroundings + GpuConfig.maxBatchSize - 1) / GpuConfig.maxBatchSize;
+    long diff = 0;
+    
+    int predicateId = predGroundingIdx.predicateId;
+    int groundingId = predGroundingIdx.groundingId;
+    
+    //Load Interpretation in GPU
+    CUdeviceptr d_interpretation = new CUdeviceptr();
+    assert cuMemAlloc(d_interpretation, ((CUdeviceptr[])state.getAllGroundings(gpuNo)).length * 
+        Sizeof.POINTER) == CUresult.CUDA_SUCCESS;
+    assert cuMemcpyHtoD(d_interpretation, Pointer.to(((CUdeviceptr[])state.getAllGroundings(gpuNo))), 
+        ((CUdeviceptr[])state.getAllGroundings(gpuNo)).length * Sizeof.POINTER) 
+      == CUresult.CUDA_SUCCESS;
+    
+    //Load variable domain sizes
+    CUdeviceptr d_varDomainSizes = new CUdeviceptr();
+    if(totalVars != 0) {
+      assert cuMemAlloc(d_varDomainSizes, totalVars * Sizeof.INT) == 
+          CUresult.CUDA_SUCCESS;
+      assert cuMemcpyHtoD(d_varDomainSizes, Pointer.to(varDomainSizes), 
+          totalVars * Sizeof.INT) == CUresult.CUDA_SUCCESS;
+    }
+    
+    //Load clauses in GPU
+    int totalClauses = clauses.size();
+    int[] totalPredsInClause = new int[totalClauses];
+    CUdeviceptr[] d_predicates_per_clause = new CUdeviceptr[totalClauses];
+    CUdeviceptr[] d_negated_per_clause = new CUdeviceptr[totalClauses];
+    CUdeviceptr[] d_valTrue_per_clause = new CUdeviceptr[totalClauses];
+    CUdeviceptr[] d_predBaseIdx_per_clause = new CUdeviceptr[totalClauses];
+    CUdeviceptr[] d_predVarMat_per_clause = new CUdeviceptr[totalClauses];
+    
+    for(int i = 0; i < totalClauses; i++) {
+      GpuClause clause = clauses.get(i);
+      totalPredsInClause[i] = clause.totalPreds;
+      d_predicates_per_clause[i] = new CUdeviceptr();
+      d_negated_per_clause[i] = new CUdeviceptr();
+      d_valTrue_per_clause[i] = new CUdeviceptr();
+      d_predBaseIdx_per_clause[i] = new CUdeviceptr();
+      d_predVarMat_per_clause[i] = new CUdeviceptr();
+      
+      assert cuMemAlloc(d_predicates_per_clause[i], clause.predicates.length * Sizeof.INT) == 
+          CUresult.CUDA_SUCCESS;
+      assert cuMemcpyHtoD(d_predicates_per_clause[i], Pointer.to(clause.predicates), 
+          clause.predicates.length * Sizeof.INT) == CUresult.CUDA_SUCCESS;
+      
+      assert cuMemAlloc(d_negated_per_clause[i], clause.isNegated.length * Sizeof.INT) == 
+          CUresult.CUDA_SUCCESS;
+      assert cuMemcpyHtoD(d_negated_per_clause[i], Pointer.to(clause.isNegated), 
+          clause.isNegated.length * Sizeof.INT) == CUresult.CUDA_SUCCESS;
+      
+      assert cuMemAlloc(d_valTrue_per_clause[i], clause.valTrue.length * Sizeof.INT) == 
+          CUresult.CUDA_SUCCESS;
+      assert cuMemcpyHtoD(d_valTrue_per_clause[i], Pointer.to(clause.valTrue), 
+          clause.valTrue.length * Sizeof.INT) == CUresult.CUDA_SUCCESS;
+      
+      assert cuMemAlloc(d_predBaseIdx_per_clause[i], clause.predBaseIdx.length * Sizeof.INT) == 
+          CUresult.CUDA_SUCCESS;
+      assert cuMemcpyHtoD(d_predBaseIdx_per_clause[i], Pointer.to(clause.predBaseIdx), 
+          clause.predBaseIdx.length * Sizeof.INT) == CUresult.CUDA_SUCCESS;
+      
+      if(totalVars != 0) {
+        assert cuMemAlloc(d_predVarMat_per_clause[i], clause.predVarMat.length * Sizeof.INT) == 
+            CUresult.CUDA_SUCCESS;
+        assert cuMemcpyHtoD(d_predVarMat_per_clause[i], Pointer.to(clause.predVarMat), 
+            clause.predVarMat.length * Sizeof.INT) == CUresult.CUDA_SUCCESS;
+      }
+    }
+    
+    CUdeviceptr d_predicates = new CUdeviceptr();
+    CUdeviceptr d_negated = new CUdeviceptr();
+    CUdeviceptr d_valTrue = new CUdeviceptr();
+    CUdeviceptr d_predBaseIdx = new CUdeviceptr();
+    CUdeviceptr d_predVarMat = new CUdeviceptr();
+    
+    assert cuMemAlloc(d_predicates, d_predicates_per_clause.length * Sizeof.POINTER) == CUresult.CUDA_SUCCESS;
+    assert cuMemcpyHtoD(d_predicates, Pointer.to(d_predicates_per_clause), d_predicates_per_clause.length * Sizeof.POINTER) 
+    == CUresult.CUDA_SUCCESS;
+    
+    assert cuMemAlloc(d_negated, d_negated_per_clause.length * Sizeof.POINTER) == CUresult.CUDA_SUCCESS;
+    assert cuMemcpyHtoD(d_negated, Pointer.to(d_negated_per_clause), d_negated_per_clause.length * Sizeof.POINTER) 
+    == CUresult.CUDA_SUCCESS;
+    
+    assert cuMemAlloc(d_valTrue, d_valTrue_per_clause.length * Sizeof.POINTER) == CUresult.CUDA_SUCCESS;
+    assert cuMemcpyHtoD(d_valTrue, Pointer.to(d_valTrue_per_clause), d_valTrue_per_clause.length * Sizeof.POINTER) 
+    == CUresult.CUDA_SUCCESS;
+    
+    assert cuMemAlloc(d_predBaseIdx, d_predBaseIdx_per_clause.length * Sizeof.POINTER) == CUresult.CUDA_SUCCESS;
+    assert cuMemcpyHtoD(d_predBaseIdx, Pointer.to(d_predBaseIdx_per_clause), d_predBaseIdx_per_clause.length * Sizeof.POINTER) 
+    == CUresult.CUDA_SUCCESS;
+    
+    assert cuMemAlloc(d_predVarMat, d_predVarMat_per_clause.length * Sizeof.POINTER) == CUresult.CUDA_SUCCESS;
+    assert cuMemcpyHtoD(d_predVarMat, Pointer.to(d_predVarMat_per_clause), d_predVarMat_per_clause.length * Sizeof.POINTER) 
+    == CUresult.CUDA_SUCCESS;
+    
+    //Load total predicate count per clauses
+    CUdeviceptr d_totalPredsInClauses = new CUdeviceptr();
+    assert cuMemAlloc(d_totalPredsInClauses, totalClauses * Sizeof.INT) == 
+        CUresult.CUDA_SUCCESS;
+    assert cuMemcpyHtoD(d_totalPredsInClauses, Pointer.to(totalPredsInClause), 
+        totalClauses * Sizeof.INT) == CUresult.CUDA_SUCCESS;
+    
+    for(long i = 0; i < totalBatches; i++) {
+      long offset = i * GpuConfig.maxBatchSize;
+      int batchGroundings = (int)Math.min(totalGroundings - offset, GpuConfig.maxBatchSize);
+      
+      CUdeviceptr d_satArray = new CUdeviceptr();
+      CUdeviceptr d_mem = new CUdeviceptr();
+  
+      assert cuMemAlloc(d_satArray, batchGroundings * Sizeof.INT) == CUresult.CUDA_SUCCESS;
+      if(totalVars != 0) {
+        assert cuMemAlloc(d_mem, totalVars * batchGroundings * Sizeof.INT) == 
+            CUresult.CUDA_SUCCESS;
+      }
+      
+      Pointer kernelParameters = Pointer.to(
+          Pointer.to(new int[]{totalVars}),
+          Pointer.to(new int[]{totalClauses}),
+          Pointer.to(d_totalPredsInClauses),
+          Pointer.to(d_varDomainSizes),
+          Pointer.to(d_predicates),
+          Pointer.to(d_negated),
+          Pointer.to(d_predBaseIdx),
+          Pointer.to(d_valTrue),
+          Pointer.to(d_predVarMat),
+          Pointer.to(d_satArray),
+          Pointer.to(d_interpretation),
+          Pointer.to(new long[]{batchGroundings}),
+          Pointer.to(new long[]{offset}),
+          Pointer.to(d_mem),
+          Pointer.to(new int[]{predicateId}),
+          Pointer.to(new int[]{groundingId}),
+          Pointer.to(new int[]{oldVal}),
+          Pointer.to(new int[]{newVal}),
+          Pointer.to(new int[]{clauseIdx}),
+          Pointer.to(new int[]{predicateIdx})
+        );
+      
+      int blockSizeX = Math.min(maxThreads, (int)batchGroundings);
+      int gridSizeX = ((int)batchGroundings + blockSizeX - 1) / blockSizeX;
+
+      cuLaunchKernel(function,
+        gridSizeX, 1, 1,
+        blockSizeX, 1, 1,
+        0, null,
+        kernelParameters, null
+      );
+      cuCtxSynchronize();
+  
+      diff += gpuUtil.parallelSum(d_satArray, batchGroundings, maxThreads, gpuNo);
+  
+      cuMemFree(d_satArray);
+      if(totalVars != 0) {
+        cuMemFree(d_mem);
+      }
+    }
+    
+    //Free Interpretation in GPU
+    cuMemFree(d_interpretation);
+    
+    //Free variable domain sizes in GPU
+    if(totalVars != 0) {
+      cuMemFree(d_varDomainSizes);
+    }
+    
+    //Free clauses in GPU
+    for(int c = 0; c < clauses.size(); c++) {
+      cuMemFree(d_predicates_per_clause[c]);
+      cuMemFree(d_negated_per_clause[c]);
+      cuMemFree(d_valTrue_per_clause[c]);
+      cuMemFree(d_predBaseIdx_per_clause[c]);
+      if(totalVars != 0) {
+        cuMemFree(d_predVarMat_per_clause[c]);
+      }
+    }
+    cuMemFree(d_predicates);
+    cuMemFree(d_negated);
+    cuMemFree(d_valTrue);
+    cuMemFree(d_predBaseIdx);
+    cuMemFree(d_predVarMat);
+    
+    //Free total predicate count per clauses
+    cuMemFree(d_totalPredsInClauses);
+    
+    return diff;
+  }
+  
   @Override
   public long countSatisfiedGroundingsCPUNoDb(State state) {
     long totalBatches = (totalGroundings + GpuConfig.maxBatchSize - 1) / GpuConfig.maxBatchSize;

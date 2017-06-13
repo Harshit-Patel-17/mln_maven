@@ -94,38 +94,106 @@ __global__ void evalCNFKernel(int totalVars, int totalClauses, int *totalPredsIn
 
   if(idx < totalGroundings)
     {
-		int memBase = idx * totalVars;
-		long n = idx + offset;
-		for(int i = totalVars-1; i >= 0; i--)
-		{
-		  int domainSize = d_varDomainSizes[i];
-		  long temp = n / domainSize;
-		  int val = n - temp * domainSize;
-		  n = temp;
-		  d_mem[memBase + i] = val;
-		}
+	int memBase = idx * totalVars;
+	long n = idx + offset;
+	for(int i = totalVars-1; i >= 0; i--)
+	{
+	  int domainSize = d_varDomainSizes[i];
+	  long temp = n / domainSize;
+	  int val = n - temp * domainSize;
+	  n = temp;
+	  d_mem[memBase + i] = val;
+	}
 
-		int sat = 1;
-		for(int c = 0; c < totalClauses; c++) {
-		  if(sat == 0)
-		    break;
-		  int clauseSat = 0;
-		  int totalPredicates = totalPredsInClause[c];
-		  for(int i = 0; i < totalPredicates; i++)
-		  {
-			  int predId = d_predicates[c][i];
-			  int negated = d_negated[c][i];
-			  int dbIndex = d_predBaseIdx[c][i];
-			  for(int j = 0; j < totalVars; j++)
-				  dbIndex += d_mem[memBase + j] * d_predVarMat[c][j * totalPredicates + i];
-			  if(negated == 0)
-			    clauseSat = max(clauseSat, d_interpretation[predId][dbIndex] == d_valTrue[c][i]);
-			  else
-			    clauseSat = max(clauseSat, d_interpretation[predId][dbIndex] != d_valTrue[c][i]);
+	int sat = 1;
+	for(int c = 0; c < totalClauses; c++) {
+	  if(sat == 0)
+	    break;
+	  int clauseSat = 0;
+	  int totalPredicates = totalPredsInClause[c];
+	  for(int i = 0; i < totalPredicates; i++)
+	  {
+		  int predId = d_predicates[c][i];
+		  int negated = d_negated[c][i];
+		  int dbIndex = d_predBaseIdx[c][i];
+		  for(int j = 0; j < totalVars; j++)
+			  dbIndex += d_mem[memBase + j] * d_predVarMat[c][j * totalPredicates + i];
+		  if(negated == 0)
+		    clauseSat = max(clauseSat, d_interpretation[predId][dbIndex] == d_valTrue[c][i]);
+		  else
+		    clauseSat = max(clauseSat, d_interpretation[predId][dbIndex] != d_valTrue[c][i]);
+	  }
+	  sat = min(sat, clauseSat);
+	}
+	d_satArray[idx] = sat;
+    }
+}
+
+extern "C"
+__global__ void evalCNFdiffKernel(int totalVars, int totalClauses, int *totalPredsInClause, int *d_varDomainSizes,
+                              int **d_predicates, int **d_negated, int **d_predBaseIdx, int **d_valTrue,
+                              int **d_predVarMat, int *d_satArray, int **d_interpretation, long totalGroundings,
+                              long offset, int *d_mem, int d_predicateId, int d_groundId, int d_oldVal,
+                              int d_newVal, int d_clauseIdx, int d_predicateIdx)
+{
+  long idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if(idx < totalGroundings)
+    {
+	int memBase = idx * totalVars;
+	long n = idx + offset;
+	for(int i = totalVars-1; i >= 0; i--)
+	{
+	  int domainSize = d_varDomainSizes[i];
+	  long temp = n / domainSize;
+	  int val = n - temp * domainSize;
+	  n = temp;
+	  d_mem[memBase + i] = val;
+	}
+
+	int sat = 1;
+	int oldSat = 1;
+	for(int c = 0; c < totalClauses; c++) {
+	  if(sat == 0 && oldSat == 0)
+	    break;
+	  int clauseSat = 0;
+	  int oldClauseSat = 0;
+	  int totalPredicates = totalPredsInClause[c];
+	  for(int i = 0; i < totalPredicates; i++)
+	  {
+		  int predId = d_predicates[c][i];
+		  int negated = d_negated[c][i];
+		  int dbIndex = d_predBaseIdx[c][i];
+		  for(int j = 0; j < totalVars; j++)
+			  dbIndex += d_mem[memBase + j] * d_predVarMat[c][j * totalPredicates + i];
+		  if(predId == d_predicateId && dbIndex == d_groundId) {
+		      if((c < d_clauseIdx) || (c == d_clauseIdx && i < d_predicateIdx)) {
+			  sat = 0; oldSat = 0;
+			  break;
+		      } else {
+			  if(negated == 0) {
+			    oldClauseSat = max(oldClauseSat, d_oldVal == d_valTrue[c][i]);
+			    clauseSat = max(clauseSat, d_newVal == d_valTrue[c][i]);
+			  } else {
+			    oldClauseSat = max(oldClauseSat, d_oldVal != d_valTrue[c][i]);
+			    clauseSat = max(clauseSat, d_newVal != d_valTrue[c][i]);
+			  }
+		      }
+		  } else {
+		    int valMatched = d_interpretation[predId][dbIndex] == d_valTrue[c][i];
+		    if(negated == 0) {
+		      oldClauseSat = max(oldClauseSat, valMatched);
+		      clauseSat = max(clauseSat, valMatched);
+		    } else {
+		      oldClauseSat = max(oldClauseSat, !valMatched);
+		      clauseSat = max(clauseSat, !valMatched);
+		    }
 		  }
-		  sat = min(sat, clauseSat);
-		}
-		d_satArray[idx] = sat;
+	  }
+	  sat = min(sat, clauseSat);
+	  oldSat = min(oldSat, oldClauseSat);
+	}
+	d_satArray[idx] = sat - oldSat;
     }
 }
 

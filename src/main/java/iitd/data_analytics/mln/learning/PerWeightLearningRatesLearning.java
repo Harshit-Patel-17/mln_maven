@@ -29,6 +29,9 @@ public class PerWeightLearningRatesLearning extends Learning {
     Formula[] formulas = mln.getFormulas().toArray(new Formula[mln.getFormulas().size()]);
     long[] satCountsDb = null;
     State state = new GpuState(mln.getPredicateDefs());
+    int totalSamples = 1000, burnInSamples = 1000;
+    GibbsSampler sampler = new GibbsSampler(mln, state, burnInSamples);
+    sampler.initFormulaSatCounts();
     
     for(Formula formula : formulas) {
       formula.setWeight(0);
@@ -37,13 +40,13 @@ public class PerWeightLearningRatesLearning extends Learning {
     
     for(int i = 0; i < maxIter; i++) {
       double maxWeightChange = 0;
-      int totalSamples = 1000, burnInSamples = 1000;
       double[] expectedSatCounts = new double[formulas.length];
+      sampler.resetBurntIn();
       
-      Sampler sampler = new GibbsSampler(mln, burnInSamples);
       for(int j = 0; j < totalSamples; j++) {
-        sampler.getNextSample(state);
-        long[] satCounts = SatisfiedGroundingCounter.count(formulas, state);
+        state = sampler.getNextSample();
+        //long[] satCounts = SatisfiedGroundingCounter.count(formulas, state);
+        long[] satCounts = sampler.getFormulaSatCounts();
         for(int k = 0; k < satCounts.length; k++) {
           expectedSatCounts[k] += satCounts[k];
         }

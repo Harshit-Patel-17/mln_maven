@@ -141,6 +141,10 @@ public abstract class Formula {
   //public abstract long countSatisfiedGroundings(State state);
   public abstract long countSatisfiedGroundingsNoDb(State state, int gpuNo);
   public abstract long countSatisfiedGroundings(State state, int gpuNo);
+  public abstract long countSatisfiedGroundingDiff(PredicateGroundingIndex predGroundingIdx, State state, int oldVal, 
+      int newVal, int gpuNo);
+  public abstract long countSatisfiedGroundingDiffUtil(PredicateGroundingIndex predGroundingIdx, State state, int oldVal, 
+      int newVal, int clauseIdx, int predicateIdx, int gpuNo);
   //public abstract long countSatisfiedGroundingsCPU(State state);
   public abstract long countSatisfiedGroundingsCPUNoDb(State state);
   

@@ -18,14 +18,17 @@ Dom = {1,...,100}
 //Heads(Flip) = {0,1}
 //Tails(Flip) = {0,1}
 //Outcome(Throw) = Face
+//A(Dom, Dom) = {0,1}
+//B(Dom, Dom) = {0,1}
 P(Dom) = {0,1}
 Q(Dom) = {0,1}
 R(Dom) = {0,1}
 S(Dom) = {0,1}
 
 #formulas
-1::P(x) = 1 ^ Q(y) = 1 ^ R(z) = 1 ^ S(w) = 1 ^ P(a) = 1
-1::P(x) = 1 ^ Q(1) = 1 ^ R(1) = 1 ^ S(1) = 1 ^ P(1) = 1
+1::P(x) = 1 ^ Q(y) = 1 ^ R(z) = 1 ^ S(w) = 1
+//0.01::A(x,y) = 1 ^ A(x,z) = 1 ^ P(x) = 1
+//1::P(x) = 1 ^ Q(1) = 1 ^ R(1) = 1 ^ S(1) = 1 ^ P(1) = 1
 //1::P(x) = 0 ^ Q(y) = 1 ^ R(x, z) = 0
 //0.09::(!P(x) = 0 v Q(y) = 0 v R(x, z) = 1) ^ (P(x) = 0 v Q(y) = 0 v R(x, z) = 1)
 //1e-5::Heads(f) = 1 ^ Tails(f) = 1

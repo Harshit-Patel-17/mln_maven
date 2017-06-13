@@ -4,6 +4,7 @@ import iitd.data_analytics.mln.mln.State;
 
 public abstract class Sampler {
 
-  public abstract void getNextSample(State state);
+  public abstract State getNextSample();
+  public abstract State getState();
   
 }
