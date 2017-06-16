@@ -140,8 +140,8 @@ public class MlnFactory {
         System.out.println("Total Groundings:" + formula.getTotalGroundings());
       }
       startTime = System.nanoTime();
-      GibbsSampler gibbsSampler = new GibbsSampler(mln, state, 40000);
-      MarginalInference marginalInference = new SamplingMarginalInference(400000, gibbsSampler);
+      GibbsSampler gibbsSampler = new GibbsSampler(mln, state, 1000);
+      MarginalInference marginalInference = new SamplingMarginalInference(50000, gibbsSampler);
       state = marginalInference.getMarginals();
       endTime = System.nanoTime();
       System.out.println("Gpu Time: " + (endTime - startTime)/1e9);

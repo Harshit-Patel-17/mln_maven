@@ -13,5 +13,5 @@
 	<gpu>yes</gpu>
 	<ptxPath>src/main/java/iitd/data_analytics/mln/gpu/</ptxPath>
 	<gpuThreads>1024</gpuThreads>
-	<maxBatchSize>10000000</maxBatchSize>
+	<maxBatchSize>50000000</maxBatchSize>
 </input>

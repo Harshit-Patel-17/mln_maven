@@ -76,6 +76,21 @@ public class GibbsSampler extends Sampler {
     //long[] satisfiedCounts = SatisfiedGroundingCounter.count(formulas, state);
     long[] satisfiedCountsDiff = SatisfiedGroundingDiffCounter.countDiff(formulas, state, predGroundingIdx, oldVal, 
         newVal, formulaSatCounts);
+    //long[] satisfiedCountsDiff = new long[formulas.length];
+    /*for(int i = 0; i < formulas.length; i++) {
+      //satisfiedCountsDiff[i] = formulas[i].countSatisfiedGroundingsNoDb(state, 0);
+      Formula f = formulas[i];
+      if(formulaSatCounts[f.getFormulaId()] == -1) {
+        satisfiedCountsDiff[i] = formulas[i].countSatisfiedGroundings(state, 0);
+      } else {
+        if(oldVal == newVal) {
+          satisfiedCountsDiff[i] = formulaSatCounts[f.getFormulaId()];
+        } else {
+          satisfiedCountsDiff[i] = formulaSatCounts[f.getFormulaId()] + formulas[i].countSatisfiedGroundingDiff(predGroundingIdx, state, oldVal, newVal, 0);
+        }
+      }
+    }*/
+    //System.out.println(Arrays.toString(satisfiedCountsDiff));
     for(int i = 0; i < formulas.length; i++) {
       formulaSatCounts[formulas[i].getFormulaId()] = satisfiedCountsDiff[i];
       satCountBuffer[i][newVal] = satisfiedCountsDiff[i];
@@ -103,16 +118,29 @@ public class GibbsSampler extends Sampler {
     int currentVal = state.getGrounding(predicateId, groundingId);
     exponent = getUnnormalizedLogProb(formulas,predGroundingIdx, currentVal, satCountBuffer, 
         formulaSatCounts);
-    cummMarginalProb[currentVal] = Math.exp(exponent);
-    Z += cummMarginalProb[currentVal];
+    cummMarginalProb[currentVal] = exponent;
+    //cummMarginalProb[currentVal] = Math.exp(exponent);
+    //Z += cummMarginalProb[currentVal];
     
     for(Integer val : predicateVals) {
       if(val != currentVal) {
         exponent = getUnnormalizedLogProb(formulas, predGroundingIdx, val, satCountBuffer,
             formulaSatCounts);
-        cummMarginalProb[val] = Math.exp(exponent);
-        Z += cummMarginalProb[val];
+        cummMarginalProb[val] = exponent;
+        //Z += cummMarginalProb[val];
+        //cummMarginalProb[val] = Math.exp(exponent);
+        //Z += cummMarginalProb[val];
       } 
+    }
+    
+    double maxExponent = 0;
+    for(int i = 0; i < cummMarginalProb.length; i++) {
+      maxExponent = Math.max(maxExponent, cummMarginalProb[i]);
+    }
+    
+    for(int i = 0; i < cummMarginalProb.length; i++) {
+      cummMarginalProb[i] = Math.exp(cummMarginalProb[i] - maxExponent);
+      Z += cummMarginalProb[i];
     }
     
     assert Z != 0 : "Z should not be zero";
@@ -191,8 +219,8 @@ public class GibbsSampler extends Sampler {
   @Override
   public State getNextSample() {
     burnIn();
-    //PredicateGroundingIndex predGroundingIdx = state.randomlySelectUnknownGrounding();
-    PredicateGroundingIndex predGroundingIdx = state.getNextUnknownGrounding();
+    PredicateGroundingIndex predGroundingIdx = state.randomlySelectUnknownGrounding();
+    //PredicateGroundingIndex predGroundingIdx = state.getNextUnknownGrounding();
     genNextSample(predGroundingIdx);
     return state;
   }

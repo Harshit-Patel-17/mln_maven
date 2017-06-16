@@ -1,6 +1,7 @@
 package iitd.data_analytics.mln.mln;
 
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -173,7 +174,8 @@ public class PredicateGroundings {
       ArrayList<Domain> domains = predicateDef.getDomains();
       Symbols vals = predicateDef.getVals();
       
-      String str = prob + "::" + predicateDef.getPredicateName();
+      DecimalFormat df = new DecimalFormat("#.####");
+      String str = df.format(prob) + "::" + predicateDef.getPredicateName();
       str += "(" + domains.get(0).getValSymbolFromId(groundingVals[0]);
       for(int i = 1; i < domains.size(); i++) {
         str += "," + domains.get(i).getValSymbolFromId(groundingVals[i]);
